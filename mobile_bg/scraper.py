@@ -7,10 +7,10 @@ from django.db import transaction
 from CarTracker.utils import requests_get_retry
 from mobile_bg.models import MobileBgAd, MobileBgAdUpdate
 
-SCRAPE_SLINKS = [
-    '5jtd4b',  # BMW, >= 2007, >= 14000 leva
-    '5jtdag',  # Audi, >= 2007, >= 14000 leva
-]
+SCRAPE_SLINKS = {
+    '5jtd4b': 'BMW >= 2007, >= 14000 leva',
+    '5jtdag': 'Audi >= 2007, >= 14000 leva',
+}
 
 
 def _update_ads_list(slink):
@@ -63,14 +63,15 @@ def _update_ads():
         MobileBgAd.objects.filter(last_update=None).order_by('adv').values_list(
             'id', flat=True))
     updated_ids = list(
-        MobileBgAd.objects.filter(active=True).order_by(
+        MobileBgAd.objects.filter(active=True).exclude(last_update=None).order_by(
             'last_update__date', 'adv').values_list('id', flat=True))
 
     _update_ads_by_id(never_updated_ids + updated_ids)
 
 
 def scrape():
-    for slink in SCRAPE_SLINKS:
+    for slink, name in SCRAPE_SLINKS.items():
+        print('Updating slink {}: {}'.format(slink, name))
         _update_ads_list(slink)
     _update_ads()
 
