@@ -8,7 +8,8 @@ from CarTracker.utils import requests_get_retry
 from mobile_bg.models import MobileBgAd, MobileBgAdUpdate
 
 SCRAPE_SLINKS = [
-    '5i5c0i',  # BMW, >= 2008, >= 14000 leva
+    '5jtd4b',  # BMW, >= 2007, >= 14000 leva
+    '5jtdag',  # Audi, >= 2007, >= 14000 leva
 ]
 
 
