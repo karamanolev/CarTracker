@@ -7,8 +7,12 @@ from django.db import transaction
 from CarTracker.utils import requests_get_retry
 from mobile_bg.models import MobileBgAd, MobileBgAdUpdate
 
+SCRAPE_SLINKS = [
+    '5i5c0i',  # BMW, >= 2008, >= 14000 leva
+]
 
-def _update_ads_list():
+
+def _update_ads_list(slink):
     page = 1
 
     while True:
@@ -16,7 +20,7 @@ def _update_ads_list():
         resp = requests_get_retry('https://www.mobile.bg/pcgi/mobile.cgi?{}'.format(
             urlencode({
                 'act': '3',
-                'slink': '5i5c0i',
+                'slink': slink,
                 'f1': str(page),
             })))
         text = resp.content.decode('windows-1251')
@@ -65,7 +69,8 @@ def _update_ads():
 
 
 def scrape():
-    _update_ads_list()
+    for slink in SCRAPE_SLINKS:
+        _update_ads_list(slink)
     _update_ads()
 
 
