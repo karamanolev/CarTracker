@@ -1,12 +1,15 @@
-import {parseQueryString} from './utils.js';
-
 function initPriceChart(advId) {
-    alert('init price ' + advId);
+    fetch('http://ct.kukite.com/mobile-bg/ads/' + advId).then(resp => {
+        console.log('resp', resp.data);
+    }).catch(e => {
+    });
 }
 
 $(() => {
     if (window.location.pathname === '/pcgi/mobile.cgi') {
-        const params = parseQueryString(window.location.search);
-        initPriceChart(params.adv);
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('act') === '4') {
+            initPriceChart(params.get('adv'));
+        }
     }
 });

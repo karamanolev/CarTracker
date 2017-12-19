@@ -14,11 +14,16 @@ def ad_data(request, adv):
 
     filtered = ad.get_filtered_updates()
 
-    return HttpResponse(json.dumps({
-        'added': ad.first_update.date,
-        'url': ad.url,
-        'updates': [{
-            'date': i.date,
-            'price': i.price,
-        } for i in filtered],
-    }, default=json_serialize), content_type='application/json')
+    response = HttpResponse(
+        json.dumps({
+            'added': ad.first_update.date,
+            'url': ad.url,
+            'updates': [{
+                'date': i.date,
+                'price': i.price,
+            } for i in filtered],
+        }, default=json_serialize),
+        content_type='application/json',
+    )
+    response['Access-Control-Allow-Origin'] = '*'
+    return response

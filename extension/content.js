@@ -1,22 +1,15 @@
-function parseQueryString(queryString) {
-    let params = {}, queries, temp, i, l;
-    // Split into key/value pairs
-    queries = queryString.split('&');
-    // Convert the array of strings into an object
-    for (i = 0, l = queries.length; i < l; i++) {
-        temp = queries[i].split('=');
-        params[temp[0]] = temp[1];
-    }
-    return params;
-}
-
 function initPriceChart(advId) {
-    alert('init price ' + advId);
+    fetch('http://ct.kukite.com/mobile-bg/ads/' + advId).then(resp => {
+        console.log('resp', resp.data);
+    }).catch(e => {
+    });
 }
 
 $(() => {
     if (window.location.pathname === '/pcgi/mobile.cgi') {
-        const params = parseQueryString(window.location.search);
-        initPriceChart(params.adv);
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('act') === '4') {
+            initPriceChart(params.get('adv'));
+        }
     }
 });
