@@ -1,0 +1,24 @@
+{
+  "manifest_version": 2,
+  "name": "CarTracker Chrome Extension",
+  "description": "Blah",
+  "version": "0.0.1",
+  "permissions": [
+    "*://*.mobile.bg/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.mobile.bg/*"
+      ],
+      "css": [
+        "main.css"
+      ],
+      "js": [
+        "lib/jquery-3.2.1.min.js",
+        "lib/Chart-2.7.1.min.js",
+        "content.js"
+      ]
+    }
+  ]
+}

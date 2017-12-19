@@ -37,6 +37,7 @@ def _update_ads_list(slink):
                 if not ad.active:
                     ad.active = True
                     ad.save()
+        bs.decompose()
         sleep(1)
         page += 1
 
