@@ -1,8 +1,12 @@
-function initPriceChart(advId) {
-    fetch('http://ct.kukite.com/mobile-bg/ads/' + advId).then(resp => {
-        console.log('resp', resp.data);
-    }).catch(e => {
-    });
+async function initPriceChart(advId) {
+    try {
+        const resp = await fetch('https://ct.kukite.com/mobile-bg/ads/' + advId),
+            data = await resp.json(),
+            $target = $('h1 + div + table[width="660"] > tbody > tr:nth-child(2) > td');
+        $target.prepend('<div style="background: red;">hello world</div>');
+    } catch (e) {
+        console.warn('Extension failed to retrieve data:', e);
+    }
 }
 
 $(() => {
