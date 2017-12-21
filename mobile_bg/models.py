@@ -1,5 +1,6 @@
 from urllib.parse import urlparse, parse_qs, urlencode
 
+import bsdiff4
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.db import models
@@ -74,9 +75,11 @@ class MobileBgAdUpdate(models.Model):
 
     date = models.DateTimeField(default=timezone.now)
     ad = models.ForeignKey(MobileBgAd, models.CASCADE, related_name='updates')
-    prev_update = models.OneToOneField('self', models.SET_NULL,
+    prev_update = models.OneToOneField('self', models.CASCADE,
                                        null=True, related_name='next_update')
-    html = models.TextField()
+
+    html_raw = models.TextField(null=True)
+    html_delta = models.BinaryField(null=True)
 
     model_name = models.CharField(max_length=128)
     model_mod = models.CharField(max_length=128)
@@ -86,6 +89,28 @@ class MobileBgAdUpdate(models.Model):
     @property
     def date_tz(self):
         return self.date.astimezone(settings.TZ)
+
+    @property
+    def html(self):
+        if self.html_delta:
+            return bsdiff4.patch(
+                self.prev_update.html.encode(),
+                self.html_delta,
+            ).decode()
+        else:
+            return self.html_raw
+
+    @html.setter
+    def html(self, value):
+        self.html_raw = value
+
+    def try_compress(self):
+        if self.html_raw and self.prev_update:
+            self.html_delta = bsdiff4.diff(
+                self.prev_update.html.encode(),
+                self.html_raw.encode(),
+            )
+            self.html_raw = None
 
     def update_from_html(self, html):
         bs = BeautifulSoup(self.html, 'html.parser')
@@ -121,5 +146,6 @@ class MobileBgAdUpdate(models.Model):
             html=html,
         )
         update.update_from_html(html)
+        update.try_compress()
         update.save()
         return update
