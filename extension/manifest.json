@@ -16,7 +16,7 @@
       ],
       "js": [
         "lib/jquery-3.2.1.min.js",
-        "lib/Chart-2.7.1.min.js",
+        "lib/Chart-2.7.1.bundle.min.js",
         "content.js"
       ]
     }
