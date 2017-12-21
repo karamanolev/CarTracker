@@ -19,7 +19,7 @@ def json_serialize(obj):
 
 
 def requests_get_retry(url):
-    retries_left = 3
+    retries_left = 5
     while True:
         try:
             resp = requests.get(url)

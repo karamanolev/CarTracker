@@ -64,6 +64,7 @@ class MobileBgAd(models.Model):
         urls = re.search('\s* var picts=new Array\((.*)\);\n', self.first_update.html).group(1)
         urls = urls.replace('"', '\\"').replace("'", '"')
         urls_list = ['https:' + i for i in json.loads('[{}]'.format(urls))]
+        urls_list.sort()
         for big_url in urls_list:
             index = int(re.search(r'_(\d+)\.pic$', big_url).group(1))
 
@@ -112,7 +113,7 @@ class MobileBgAdImage(models.Model):
             filename = '{}_{}.jpg'.format(self.ad.adv, self.index)
             print('Downloading image {}'.format(url))
             resp = requests_get_retry(url)
-            sleep(settings.REQUEST_DELAY / 2)
+            sleep(settings.REQUEST_DELAY / 4)
             return ContentFile(resp.content, filename)
         except HttpNotFoundException:
             return None
