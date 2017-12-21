@@ -75,7 +75,7 @@ class MobileBgAdUpdate(models.Model):
     date = models.DateTimeField(default=timezone.now)
     ad = models.ForeignKey(MobileBgAd, models.CASCADE, related_name='updates')
     prev_update = models.OneToOneField('self', models.SET_NULL,
-                                       null=True, related_name='prev_update')
+                                       null=True, related_name='next_update')
     html = models.TextField()
 
     model_name = models.CharField(max_length=128)
