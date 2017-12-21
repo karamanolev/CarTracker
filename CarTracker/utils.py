@@ -2,6 +2,7 @@ from datetime import date, datetime
 from time import sleep
 
 import requests
+from django.conf import settings
 from requests import RequestException
 
 
@@ -24,5 +25,5 @@ def requests_get_retry(url):
             retries_left -= 1
             if not retries_left:
                 raise
-            sleep(2)
+            sleep(settings.REQUEST_RETRY_TIMEOUT)
             print('Requesting {} failed, retrying...'.format(url))

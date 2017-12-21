@@ -2,6 +2,7 @@ from time import sleep
 from urllib.parse import urlencode
 
 from bs4 import BeautifulSoup
+from django.conf import settings
 from django.db import transaction
 
 from CarTracker.utils import requests_get_retry
@@ -38,7 +39,7 @@ def _update_ads_list(slink):
                     ad.active = True
                     ad.save()
         bs.decompose()
-        sleep(1)
+        sleep(settings.REQUEST_DELAY)
         page += 1
 
 
@@ -49,7 +50,7 @@ def _update_ad(ad):
             last_update = ad.last_update.date
         print('Updating {} (last update {})'.format(ad.adv, last_update))
         ad.update()
-    sleep(1)
+    sleep(settings.REQUEST_DELAY)
 
 
 def _update_ads_by_id(ids):
