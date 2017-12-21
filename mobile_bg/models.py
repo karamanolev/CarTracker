@@ -65,7 +65,11 @@ class MobileBgAd(models.Model):
 
     @transaction.atomic()
     def download_images(self):
-        urls = re.search('\s* var picts=new Array\((.*)\);\n', self.first_update.html).group(1)
+        urls_match = re.search('\s* var picts=new Array\((.*)\);\n', self.first_update.html)
+        if not urls_match:
+            print('No images for ad', self.adv)
+            return
+        urls = urls_match.group(1)
         urls = urls.replace('"', '\\"').replace("'", '"')
         urls_list = ['https:' + i for i in json.loads('[{}]'.format(urls))]
         urls_list.sort()
