@@ -17,6 +17,8 @@ class MobileBgAd(models.Model):
                                      null=True, related_name='first_update_ads')
     last_update = models.ForeignKey('mobile_bg.MobileBgAdUpdate', models.CASCADE,
                                     null=True, related_name='last_update_ads')
+    last_price_drop = models.ForeignKey('mobile_bg.MobileBgAdUpdate', models.CASCADE,
+                                        null=True, related_name='last_price_drop_ads')
 
     @property
     def url(self):
@@ -34,6 +36,8 @@ class MobileBgAd(models.Model):
         if self.first_update is None:
             self.first_update = update
         self.active = update.active
+        if self.last_update and self.last_update.price != update.price:
+            self.last_price_drop = update
         self.last_update = update
         self.save()
 
@@ -70,6 +74,7 @@ class MobileBgAdUpdate(models.Model):
 
     date = models.DateTimeField(default=timezone.now)
     ad = models.ForeignKey(MobileBgAd, models.CASCADE, related_name='updates')
+    prev_update = models.OneToOneField('self', null=True, related_name='prev_update')
     html = models.TextField()
 
     model_name = models.CharField(max_length=128)
@@ -111,6 +116,7 @@ class MobileBgAdUpdate(models.Model):
     def from_html(cls, ad, html):
         update = cls(
             ad=ad,
+            prev_update=ad.last_update,
             html=html,
         )
         update.update_from_html(html)
