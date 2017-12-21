@@ -26,7 +26,7 @@ def requests_get_retry(url):
             resp.raise_for_status()
             return resp
         except RequestException as ex:
-            if ex.response and ex.response.status_code == 404:
+            if ex.response is not None and ex.response.status_code == 404:
                 raise HttpNotFoundException()
             retries_left -= 1
             if not retries_left:
