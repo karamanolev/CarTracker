@@ -66,6 +66,14 @@ class MobileBgAd(models.Model):
         urls_list = ['https:' + i for i in json.loads('[{}]'.format(urls))]
         for big_url in urls_list:
             index = int(re.search(r'_(\d+)\.pic$', big_url).group(1))
+
+            try:
+                self.images.get(index=index)
+                print('Image {} already downloaded'.format(big_url))
+                continue
+            except MobileBgAdImage.DoesNotExist:
+                pass
+
             small_url = big_url.replace('/big/', '/small/')
             ad_image = MobileBgAdImage(
                 ad=self,
@@ -112,6 +120,9 @@ class MobileBgAdImage(models.Model):
     def download(self):
         self.image_small = self._download(self.small_url)
         self.image_big = self._download(self.big_url)
+
+    class Meta:
+        unique_together = (('ad', 'index'),)
 
 
 class MobileBgAdUpdate(models.Model):
