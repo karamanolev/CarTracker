@@ -1,4 +1,5 @@
-from itertools import count
+import json
+import re
 from time import sleep
 from urllib.parse import urlparse, parse_qs, urlencode
 
@@ -60,18 +61,19 @@ class MobileBgAd(models.Model):
 
     @transaction.atomic()
     def download_images(self):
-        for i in count(1):
-            try:
-                self.images.get(index=i)
-                continue
-            except MobileBgAdImage.DoesNotExist:
-                pass
+        urls = re.search('\s* var picts=new Array\((.*)\);\n', self.first_update.html).group(1)
+        urls = urls.replace('"', '\\"').replace("'", '"')
+        urls_list = ['https:' + i for i in json.loads('[{}]'.format(urls))]
+        for big_url in urls_list:
+            index = int(re.search(r'_(\d+)\.pic$', big_url).group(1))
+            small_url = big_url.replace('/big/', '/small/')
             ad_image = MobileBgAdImage(
                 ad=self,
-                index=i,
+                index=index,
+                small_url=small_url,
+                big_url=big_url,
             )
-            if not ad_image.download():
-                return
+            ad_image.download()
             ad_image.save()
 
     @classmethod
@@ -92,26 +94,24 @@ class MobileBgAd(models.Model):
 class MobileBgAdImage(models.Model):
     ad = models.ForeignKey(MobileBgAd, models.CASCADE, related_name='images')
     index = models.IntegerField()
+    small_url = models.CharField(max_length=512)
+    big_url = models.CharField(max_length=512)
     image_small = models.FileField(upload_to='mobile_bg/images/small/')
     image_big = models.FileField(upload_to='mobile_bg/images/big/')
 
-    def _download(self, size):
+    def _download(self, url):
         try:
-            filename = '{}_{}_{}.jpg'.format(self.ad.adv, self.index, size)
-            print('Downloading image {}'.format(filename))
-            resp = requests_get_retry('https://sc01-ha-b.mobile.bg/photos/1/{}/{}_{}.pic'.format(
-                size, self.ad.adv, self.index))
+            filename = '{}_{}.jpg'.format(self.ad.adv, self.index)
+            print('Downloading image {}'.format(url))
+            resp = requests_get_retry(url)
             sleep(settings.REQUEST_DELAY / 2)
             return ContentFile(resp.content, filename)
         except HttpNotFoundException:
             return None
 
     def download(self):
-        small = self._download('small')
-        big = self._download('big')
-        self.image_small = small
-        self.image_big = big
-        return small is not None and big is not None
+        self.image_small = self._download(self.small_url)
+        self.image_big = self._download(self.big_url)
 
 
 class MobileBgAdUpdate(models.Model):
