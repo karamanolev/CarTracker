@@ -38,13 +38,17 @@ class MobileBgAd(models.Model):
         resp = requests_get_retry(self.url)
         text = resp.content.decode('windows-1251')
         update = MobileBgAdUpdate.from_html(self, text)
+        is_first_update = False
         if self.first_update is None:
+            is_first_update = True
             self.first_update = update
         self.active = update.active
         if self.last_update and self.last_update.price != update.price:
             self.last_price_drop = update
         self.last_update = update
         self.save()
+        if is_first_update:
+            self.download_images()
 
     def get_filtered_updates(self):
         updates = list(self.updates.order_by('date').all())
