@@ -6,6 +6,10 @@ from django.conf import settings
 from requests import RequestException
 
 
+class HttpNotFoundException(RequestException):
+    pass
+
+
 def json_serialize(obj):
     """JSON serializer for objects not serializable by default json code"""
 
@@ -21,7 +25,9 @@ def requests_get_retry(url):
             resp = requests.get(url)
             resp.raise_for_status()
             return resp
-        except RequestException:
+        except RequestException as ex:
+            if ex.response.status_code == 404:
+                raise HttpNotFoundException()
             retries_left -= 1
             if not retries_left:
                 raise

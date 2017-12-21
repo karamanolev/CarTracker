@@ -1,12 +1,15 @@
+from itertools import count
+from time import sleep
 from urllib.parse import urlparse, parse_qs, urlencode
 
 import bsdiff4
 from bs4 import BeautifulSoup
 from django.conf import settings
-from django.db import models
+from django.core.files.base import ContentFile
+from django.db import models, transaction
 from django.utils import timezone
 
-from CarTracker.utils import requests_get_retry
+from CarTracker.utils import requests_get_retry, HttpNotFoundException
 
 
 class MobileBgAd(models.Model):
@@ -55,6 +58,22 @@ class MobileBgAd(models.Model):
                 filtered.append(updates[-1])
         return filtered
 
+    @transaction.atomic()
+    def download_images(self):
+        for i in count(1):
+            try:
+                self.images.get(index=i)
+                continue
+            except MobileBgAdImage.DoesNotExist:
+                pass
+            ad_image = MobileBgAdImage(
+                ad=self,
+                index=i,
+            )
+            if not ad_image.download():
+                return
+            ad_image.save()
+
     @classmethod
     def from_url(cls, url):
         parsed = urlparse(url)
@@ -68,6 +87,31 @@ class MobileBgAd(models.Model):
                 act=qs['act'][0],
                 adv=adv,
             )
+
+
+class MobileBgAdImage(models.Model):
+    ad = models.ForeignKey(MobileBgAd, models.CASCADE, related_name='images')
+    index = models.IntegerField()
+    image_small = models.FileField(upload_to='mobile_bg/images/small/')
+    image_big = models.FileField(upload_to='mobile_bg/images/big/')
+
+    def _download(self, size):
+        try:
+            filename = '{}_{}_{}.jpg'.format(self.ad.adv, self.index, size)
+            print('Downloading image {}'.format(filename))
+            resp = requests_get_retry('https://sc01-ha-b.mobile.bg/photos/1/{}/{}_{}.pic'.format(
+                size, self.ad.adv, self.index))
+            sleep(settings.REQUEST_DELAY / 2)
+            return ContentFile(resp.content, filename)
+        except HttpNotFoundException:
+            return None
+
+    def download(self):
+        small = self._download('small')
+        big = self._download('big')
+        self.image_small = small
+        self.image_big = big
+        return small is not None and big is not None
 
 
 class MobileBgAdUpdate(models.Model):
