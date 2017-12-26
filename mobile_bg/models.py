@@ -13,6 +13,11 @@ from django.utils import timezone
 from CarTracker.utils import requests_get_retry, HttpNotFoundException
 
 
+class MobileBgScrapeLink(models.Model):
+    slink = models.CharField(max_length=16)
+    name = models.CharField(max_length=64)
+
+
 class MobileBgAd(models.Model):
     topmenu = models.IntegerField()
     act = models.IntegerField()

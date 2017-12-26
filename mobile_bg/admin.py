@@ -1,3 +1,6 @@
 from django.contrib import admin
 
-# Register your models here.
+from mobile_bg.models import MobileBgAd, MobileBgScrapeLink
+
+admin.site.register(MobileBgAd)
+admin.site.register(MobileBgScrapeLink)
