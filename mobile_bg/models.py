@@ -135,6 +135,13 @@ class MobileBgAdImage(models.Model):
 
 
 class MobileBgAdUpdate(models.Model):
+    CURRENCY_BGN = 0
+    CURRENCY_EUR = 1
+    CURRENCY_CHOICES = (
+        (CURRENCY_BGN, 'BGN'),
+        (CURRENCY_EUR, 'EUR'),
+    )
+
     PRICE_BY_NEGOTIATION = -1
 
     date = models.DateTimeField(default=timezone.now)
@@ -149,6 +156,7 @@ class MobileBgAdUpdate(models.Model):
     model_mod = models.CharField(max_length=128)
     active = models.BooleanField(default=True, db_index=True)
     price = models.IntegerField(null=True, blank=True)
+    price_currency = models.IntegerField(null=True, blank=True, choices=CURRENCY_CHOICES)
 
     @property
     def date_tz(self):
@@ -190,8 +198,10 @@ class MobileBgAdUpdate(models.Model):
             raw_price = bs.find(style='font-size:15px; font-weight:bold;').text.replace(' ', '')
             if 'лв.' in raw_price:
                 self.price = int(raw_price.replace('лв.', ''))
+                self.price_currency = self.CURRENCY_BGN
             elif 'EUR' in raw_price:
-                self.price = int(raw_price.replace('EUR', '')) * 2
+                self.price = int(raw_price.replace('EUR', ''))
+                self.price_currency = self.CURRENCY_EUR
             else:
                 raise Exception('Unknown currency for price {}'.format(raw_price))
 
