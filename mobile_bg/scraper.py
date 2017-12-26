@@ -10,6 +10,7 @@ from mobile_bg.models import MobileBgAd, MobileBgAdUpdate
 
 SCRAPE_SLINKS = {
     '5m8424': 'Electric Cars',
+    '5m9o5o': 'Hybrid Cars',
     '5jtd4b': 'BMW >= 2007, >= 14000 leva',
     '5jtdag': 'Audi >= 2007, >= 14000 leva',
 }
