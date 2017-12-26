@@ -191,7 +191,7 @@ class MobileBgAdUpdate(models.Model):
             if 'лв.' in raw_price:
                 self.price = int(raw_price.replace('лв.', ''))
             elif 'EUR' in raw_price:
-                self.price = int(raw_price.replace('EUR', ''))
+                self.price = int(raw_price.replace('EUR', '')) * 2
             else:
                 raise Exception('Unknown currency for price {}'.format(raw_price))
 
