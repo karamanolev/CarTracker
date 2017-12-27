@@ -1,0 +1,11 @@
+{% extends 'bootstrap_shell.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <h4>Recent unlists (sold)</h4>
+            {% include 'mobile_bg/_car_list_table.html' %}
+        </div>
+    </div>
+{% endblock %}

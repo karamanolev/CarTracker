@@ -47,7 +47,20 @@ def ad_image(request, adv, index, size):
 
 
 def index(request):
-    last_price_changes = MobileBgAd.get_recent_price_changes()
     return render(request, 'mobile_bg/index.html', {
-        'last_price_changes': last_price_changes,
+        'last_price_changes': MobileBgAd.get_recent_price_changes()[:5],
+        'last_unlists': MobileBgAd.get_recent_unlists()[:5],
+    })
+
+
+def recent_price_changes(request):
+    return render(request, 'mobile_bg/recent_price_changes.html', {
+        'ads': MobileBgAd.get_recent_price_changes()[:100],
+    })
+
+
+
+def recent_unlists(request):
+    return render(request, 'mobile_bg/recent_unlists.html', {
+        'ads': MobileBgAd.get_recent_unlists()[:100],
     })

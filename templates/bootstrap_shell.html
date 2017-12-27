@@ -6,8 +6,8 @@
             <div class="col">
                 <nav class="navbar navbar-expand-lg navbar-light bg-light">
                     {% url 'mobile_bg:index' as index_url %}
-                    {% url 'mobile_bg:index' as map_url %}
-                    {% url 'mobile_bg:index' as cameras_info_url %}
+                    {% url 'mobile_bg:recent_price_changes' as recent_price_changes_url %}
+                    {% url 'mobile_bg:recent_unlists' as recent_unlists_url %}
                     <a class="navbar-brand" href="{{ home_url }}">CarTracker</a>
                     <button class="navbar-toggler" type="button" data-toggle="collapse"
                             data-target="#navbarSupportedContent"
@@ -19,17 +19,17 @@
                         <ul class="navbar-nav mr-auto">
                             <li class="nav-item {% if request.path == index_url %}active{% endif %}">
                                 <a class="nav-link" href="{{ index_url }}">
-                                    Начало
+                                    Home
                                 </a>
                             </li>
-                            <li class="nav-item {% if request.path == map_url %}active{% endif %}">
-                                <a class="nav-link" href="{{ map_url }}">
-                                    Карта на камери и полиция
+                            <li class="nav-item {% if request.path == recent_price_changes_url %}active{% endif %}">
+                                <a class="nav-link" href="{{ recent_price_changes_url }}">
+                                    Recent price changes
                                 </a>
                             </li>
-                            <li class="nav-item {% if request.path == cameras_info_url %}active{% endif %}">
-                                <a class="nav-link" href="{{ cameras_info_url }}">
-                                    Информация за камерите
+                            <li class="nav-item {% if request.path == recent_unlists_url %}active{% endif %}">
+                                <a class="nav-link" href="{{ recent_unlists_url }}">
+                                    Recent unlists (sold)
                                 </a>
                             </li>
                         </ul>

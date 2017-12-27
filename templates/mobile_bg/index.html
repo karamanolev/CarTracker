@@ -4,8 +4,13 @@
 {% block content %}
     <div class="row">
         <div class="col-md-12">
-            <h2>Recent price changes</h2>
+            <h4>Recent price changes</h4>
             {% with last_price_changes as ads %}
+                {% include 'mobile_bg/_car_list_table.html' %}
+            {% endwith %}
+
+            <h4>Recently unlisted (sold)</h4>
+            {% with last_unlists as ads %}
                 {% include 'mobile_bg/_car_list_table.html' %}
             {% endwith %}
         </div>

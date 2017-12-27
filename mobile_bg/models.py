@@ -1,5 +1,6 @@
 import json
 import re
+from datetime import date
 from time import sleep
 from urllib.parse import urlparse, parse_qs, urlencode
 
@@ -143,7 +144,13 @@ class MobileBgAd(models.Model):
         return MobileBgAd.objects.filter(
             active=True,
             last_price_change__isnull=False,
-        ).order_by('-last_price_change__date')[:20]
+        ).order_by('-last_price_change__date')
+
+    @classmethod
+    def get_recent_unlists(cls):
+        return MobileBgAd.objects.filter(
+            active=False,
+        ).order_by('-last_active_update__date')
 
 
 class MobileBgAdImage(models.Model):
@@ -180,6 +187,17 @@ class MobileBgAdUpdate(models.Model):
         (CURRENCY_EUR, 'EUR'),
     )
 
+    ENGINE_PETROL = 0
+    ENGINE_DIESEL = 1
+    ENGINE_HYBRID = 2
+    ENGINE_ELECTRIC = 3
+    ENGINE_CHOICES = (
+        (ENGINE_PETROL, 'Petrol'),
+        (ENGINE_DIESEL, 'Diesel'),
+        (ENGINE_HYBRID, 'Hybrid'),
+        (ENGINE_ELECTRIC, 'Electric'),
+    )
+
     PRICE_BY_NEGOTIATION = -1
 
     date = models.DateTimeField(default=timezone.now)
@@ -195,6 +213,9 @@ class MobileBgAdUpdate(models.Model):
     active = models.BooleanField(default=True, db_index=True)
     price = models.IntegerField(null=True, blank=True)
     price_currency = models.IntegerField(null=True, blank=True, choices=CURRENCY_CHOICES)
+    registration_date = models.DateField(null=True, blank=True)
+    engine_type = models.IntegerField(null=True, blank=True, choices=ENGINE_CHOICES)
+    mileage_km = models.IntegerField(null=True, blank=True)
 
     @property
     def date_tz(self):
@@ -222,7 +243,7 @@ class MobileBgAdUpdate(models.Model):
             )
             self.html_raw = None
 
-    def update_from_html(self, html):
+    def update_from_html(self):
         bs = BeautifulSoup(self.html, 'html.parser')
         if len(bs.find_all(style='font-size:18px; font-weight:bold; color:#FF0000')):
             self.active = False
@@ -250,6 +271,28 @@ class MobileBgAdUpdate(models.Model):
         if len(raw_name_children) >= 2:
             self.model_mod = raw_name_children[1].text.strip()
 
+        def _get_info_row(title):
+            return bs.find(text=title).parent.next_sibling.text
+
+        reg_date_parts = _get_info_row('Дата на производство').split()
+        month = ['януари', 'февруари', 'март', 'април', 'май', 'юни', 'юли', 'август',
+                 'септември', 'октомври', 'ноември', 'декември'].index(reg_date_parts[0]) + 1
+        year = int(reg_date_parts[1])
+        assert len(reg_date_parts) == 3
+        assert reg_date_parts[2] == 'г.'
+        self.registration_date = date(year, month, 1)
+
+        self.engine_type = {
+            'Бензинов': self.ENGINE_PETROL,
+            'Дизелов': self.ENGINE_DIESEL,
+            'Хибриден': self.ENGINE_HYBRID,
+            'Електрически': self.ENGINE_ELECTRIC,
+        }[_get_info_row('Тип двигател')]
+
+        mileage_parts = _get_info_row('Пробег').split()
+        self.mileage_km = int(mileage_parts[0])
+        assert mileage_parts[1] == 'км'
+
     @classmethod
     def from_html(cls, ad, html):
         update = cls(
@@ -257,7 +300,7 @@ class MobileBgAdUpdate(models.Model):
             prev_update=ad.last_update,
             html=html,
         )
-        update.update_from_html(html)
+        update.update_from_html()
         update.try_compress()
         update.save()
         return update
