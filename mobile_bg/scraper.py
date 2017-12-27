@@ -1,15 +1,18 @@
+from datetime import timedelta
 from time import sleep
 from urllib.parse import urlencode
 
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.db import transaction
+from django.db.models.query_utils import Q
+from django.utils import timezone
 
 from CarTracker.utils import requests_get_retry
 from mobile_bg.models import MobileBgAd, MobileBgAdUpdate, MobileBgScrapeLink
 
 
-def _update_ads_list(slink):
+def _update_ads_list(scrape_link):
     page = 1
 
     while True:
@@ -17,7 +20,7 @@ def _update_ads_list(slink):
         resp = requests_get_retry('https://www.mobile.bg/pcgi/mobile.cgi?{}'.format(
             urlencode({
                 'act': '3',
-                'slink': slink,
+                'slink': scrape_link.slink,
                 'f1': str(page),
             })))
         text = resp.content.decode('windows-1251')
@@ -37,6 +40,9 @@ def _update_ads_list(slink):
         sleep(settings.REQUEST_DELAY)
         page += 1
 
+    scrape_link.last_update_date = timezone.now()
+    scrape_link.save(update_fields=('last_update_date',))
+
 
 def _update_ad(ad):
     with transaction.atomic():
@@ -45,7 +51,6 @@ def _update_ad(ad):
             last_update = ad.last_update.date
         print('Updating {} (last update {})'.format(ad.adv, last_update))
         ad.update()
-    sleep(settings.REQUEST_DELAY)
 
 
 def _update_ads_by_id(ids):
@@ -55,22 +60,20 @@ def _update_ads_by_id(ids):
         print('Done {}/{}'.format(i + 1, len(ids)))
 
 
-def _update_ads():
-    never_updated_ids = list(
-        MobileBgAd.objects.filter(last_update=None).order_by('adv').values_list(
-            'id', flat=True))
-    updated_ids = list(
-        MobileBgAd.objects.filter(active=True).exclude(last_update=None).order_by(
-            'last_update__date', 'adv').values_list('id', flat=True))
-
-    _update_ads_by_id(never_updated_ids + updated_ids)
-
-
 def scrape():
-    for scrape_link in MobileBgScrapeLink.objects.all():
+    threshold = timezone.now() - timedelta(hours=12)
+
+    scrape_links = MobileBgScrapeLink.objects.filter(
+        Q(last_update_date__lte=threshold) | Q(last_update_date=None),
+    )
+    for scrape_link in scrape_links:
         print('Updating slink {}: {}'.format(scrape_link.slink, scrape_link.name))
-        _update_ads_list(scrape_link.slink)
-    _update_ads()
+        _update_ads_list(scrape_link)
+
+    ad_ids = MobileBgAd.objects.filter(
+        Q(last_update=None) | Q(last_update__date__lte=threshold, active=True),
+    ).values_list('id', flat=True)
+    _update_ads_by_id(ad_ids)
 
 
 def print_ads_stats():
@@ -78,3 +81,4 @@ def print_ads_stats():
     print('Number of active ads: {}'.format(
         MobileBgAd.objects.filter(last_update__active=True).count()))
     print('Number of ad updates: {}'.format(MobileBgAdUpdate.objects.count()))
+    print('---------------------')
