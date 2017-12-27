@@ -55,8 +55,8 @@ class MobileBgAd(models.Model):
         self.last_price_change = None
         for update, prev in zip(updates[::-1], updates[-2::-1]):
             valid = (
-                update.active and
-                (update.price != prev.price or update.price_currency != prev.price_currency)
+                    update.active and
+                    (update.price != prev.price or update.price_currency != prev.price_currency)
             )
             if valid:
                 self.last_price_change = update
@@ -137,6 +137,13 @@ class MobileBgAd(models.Model):
                 act=qs['act'][0],
                 adv=adv,
             )
+
+    @classmethod
+    def get_recent_price_changes(cls):
+        return MobileBgAd.objects.filter(
+            active=True,
+            last_price_change__isnull=False,
+        ).order_by('-last_price_change__date')[:20]
 
 
 class MobileBgAdImage(models.Model):

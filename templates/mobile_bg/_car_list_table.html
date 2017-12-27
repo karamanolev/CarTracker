@@ -1,0 +1,31 @@
+<table class="table">
+    <thead>
+    <tr>
+        <th></th>
+        <th>Model</th>
+        <th>Initial price</th>
+        <th>Current price</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for ad in ads %}
+        <tr>
+            <td>
+                <img src="{% url 'mobile_bg:ad_image' ad.adv 1 'big' %}" width="100" height="75">
+            </td>
+            <td>
+                <a href="{{ ad.url }}">
+                    {{ ad.first_update.model_name }}
+                    {{ ad.first_update.model_mod }}
+                </a>
+            </td>
+            <td>
+                {{ ad.first_update.price }}
+            </td>
+            <td>
+                {{ ad.last_update.price }}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>

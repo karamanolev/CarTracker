@@ -47,10 +47,7 @@ def ad_image(request, adv, index, size):
 
 
 def index(request):
-    last_price_changes = list(MobileBgAd.objects.filter(
-        active=True,
-        last_price_change__isnull=False,
-    ).order_by('-last_price_change__date')[:20])
+    last_price_changes = MobileBgAd.get_recent_price_changes()
     return render(request, 'mobile_bg/index.html', {
         'last_price_changes': last_price_changes,
     })
