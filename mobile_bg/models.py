@@ -54,7 +54,11 @@ class MobileBgAd(models.Model):
 
         self.last_price_change = None
         for update, prev in zip(updates[::-1], updates[-2::-1]):
-            if update.price != prev.price or update.price_currency != prev.price_currency:
+            valid = (
+                update.active and
+                (update.price != prev.price or update.price_currency != prev.price_currency)
+            )
+            if valid:
                 self.last_price_change = update
                 break
 
@@ -73,8 +77,7 @@ class MobileBgAd(models.Model):
         is_first_update = self.first_update is None
         self.update_computed_fields()
         self.save()
-        if is_first_update:
-            self.download_images()
+        self.download_images()
 
     def get_filtered_updates(self):
         updates = list(self.updates.order_by('date').all())
@@ -82,6 +85,8 @@ class MobileBgAd(models.Model):
         if len(updates) > 0:
             filtered = []
             for update in updates:
+                if not update.active:
+                    continue
                 if len(filtered) < 1 or update.price != filtered[-1].price:
                     filtered.append(update)
 
@@ -91,7 +96,7 @@ class MobileBgAd(models.Model):
 
     @transaction.atomic()
     def download_images(self):
-        urls_match = re.search('\s* var picts=new Array\((.*)\);\n', self.first_update.html)
+        urls_match = re.search('\s* var picts=new Array\((.*)\);\n', self.last_active_update.html)
         if not urls_match:
             print('No images for ad', self.adv)
             return

@@ -20,5 +20,5 @@ import mobile_bg.urls
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^', include(mobile_bg.urls)),
+    url(r'^', include(mobile_bg.urls, namespace='mobile_bg')),
 ]
