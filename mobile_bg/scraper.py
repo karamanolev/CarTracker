@@ -64,7 +64,7 @@ def scrape():
     threshold = timezone.now() - timedelta(hours=12)
 
     scrape_links = MobileBgScrapeLink.objects.filter(
-        Q(last_update=None) | Q(last_update_date__lte=threshold),
+        Q(last_update_date__lte=threshold) | Q(last_update_date=None),
     )
     for scrape_link in scrape_links:
         print('Updating slink {}: {}'.format(scrape_link.slink, scrape_link.name))
