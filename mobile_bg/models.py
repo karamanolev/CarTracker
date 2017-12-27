@@ -22,13 +22,17 @@ class MobileBgAd(models.Model):
     topmenu = models.IntegerField()
     act = models.IntegerField()
     adv = models.BigIntegerField(unique=True)
+
+    # Computed fields
     active = models.BooleanField(default=True)
     first_update = models.ForeignKey('mobile_bg.MobileBgAdUpdate', models.CASCADE,
                                      null=True, related_name='first_update_ads')
     last_update = models.ForeignKey('mobile_bg.MobileBgAdUpdate', models.CASCADE,
                                     null=True, related_name='last_update_ads')
-    last_price_drop = models.ForeignKey('mobile_bg.MobileBgAdUpdate', models.CASCADE,
-                                        null=True, related_name='last_price_drop_ads')
+    last_active_update = models.ForeignKey('mobile_bg.MobileBgAdUpdate', models.CASCADE,
+                                           null=True, related_name='last_active_update_ads')
+    last_price_change = models.ForeignKey('mobile_bg.MobileBgAdUpdate', models.CASCADE,
+                                          null=True, related_name='last_price_change_ads')
 
     @property
     def url(self):
@@ -39,18 +43,33 @@ class MobileBgAd(models.Model):
                 'adv': self.adv,
             }))
 
+    def update_computed_fields(self):
+        updates = list(self.updates.order_by('date'))
+        if not len(updates):
+            return
+        self.first_update = updates[0]
+        self.last_update = updates[-1]
+        self.active = self.last_update.active
+
+        self.last_price_change = None
+        for update, prev in zip(updates[::-1], updates[-2::-1]):
+            if update.price != prev.price or update.price_currency != prev.price_currency:
+                self.last_price_change = update
+                break
+
+        self.last_active_update = None
+        for update in updates[::-1]:
+            if update.active:
+                self.last_active_update = update
+                break
+
     def update(self):
         resp = requests_get_retry(self.url)
         text = resp.content.decode('windows-1251')
         update = MobileBgAdUpdate.from_html(self, text)
-        is_first_update = False
-        if self.first_update is None:
-            is_first_update = True
-            self.first_update = update
-        self.active = update.active
-        if self.last_update and self.last_update.price != update.price:
-            self.last_price_drop = update
-        self.last_update = update
+
+        is_first_update = self.first_update is None
+        self.update_computed_fields()
         self.save()
         if is_first_update:
             self.download_images()
@@ -228,3 +247,12 @@ class MobileBgAdUpdate(models.Model):
         update.try_compress()
         update.save()
         return update
+
+    def __str__(self):
+        return 'Update {} at {} {} at {} {}'.format(
+            self.id,
+            self.date.strftime('%Y-%m-%d %H:%M'),
+            'active' if self.active else 'inactive',
+            self.price,
+            self.get_price_currency_display(),
+        )
