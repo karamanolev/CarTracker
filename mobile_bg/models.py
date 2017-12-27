@@ -272,26 +272,35 @@ class MobileBgAdUpdate(models.Model):
             self.model_mod = raw_name_children[1].text.strip()
 
         def _get_info_row(title):
-            return bs.find(text=title).parent.next_sibling.text
+            title_el = bs.find(text=title)
+            if title_el is None:
+                return None
+            return title_el.parent.next_sibling.text
 
-        reg_date_parts = _get_info_row('Дата на производство').split()
-        month = ['януари', 'февруари', 'март', 'април', 'май', 'юни', 'юли', 'август',
-                 'септември', 'октомври', 'ноември', 'декември'].index(reg_date_parts[0]) + 1
-        year = int(reg_date_parts[1])
-        assert len(reg_date_parts) == 3
-        assert reg_date_parts[2] == 'г.'
-        self.registration_date = date(year, month, 1)
+        reg_date_row = _get_info_row('Дата на производство')
+        if reg_date_row:
+            reg_date_parts = reg_date_row.split()
+            month = ['януари', 'февруари', 'март', 'април', 'май', 'юни', 'юли', 'август',
+                     'септември', 'октомври', 'ноември', 'декември'].index(reg_date_parts[0]) + 1
+            year = int(reg_date_parts[1])
+            assert len(reg_date_parts) == 3
+            assert reg_date_parts[2] == 'г.'
+            self.registration_date = date(year, month, 1)
 
-        self.engine_type = {
-            'Бензинов': self.ENGINE_PETROL,
-            'Дизелов': self.ENGINE_DIESEL,
-            'Хибриден': self.ENGINE_HYBRID,
-            'Електрически': self.ENGINE_ELECTRIC,
-        }[_get_info_row('Тип двигател')]
+        engine_type_row = _get_info_row('Тип двигател')
+        if engine_type_row:
+            self.engine_type = {
+                'Бензинов': self.ENGINE_PETROL,
+                'Дизелов': self.ENGINE_DIESEL,
+                'Хибриден': self.ENGINE_HYBRID,
+                'Електрически': self.ENGINE_ELECTRIC,
+            }[engine_type_row]
 
-        mileage_parts = _get_info_row('Пробег').split()
-        self.mileage_km = int(mileage_parts[0])
-        assert mileage_parts[1] == 'км'
+        mileage_row = _get_info_row('Пробег')
+        if mileage_row:
+            mileage_parts = mileage_row.split()
+            self.mileage_km = int(mileage_parts[0])
+            assert mileage_parts[1] == 'км'
 
     @classmethod
     def from_html(cls, ad, html):
