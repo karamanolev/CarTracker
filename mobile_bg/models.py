@@ -219,6 +219,7 @@ class MobileBgAdUpdate(models.Model):
     registration_date = models.DateField(null=True, blank=True)
     engine_type = models.IntegerField(null=True, blank=True, choices=ENGINE_CHOICES)
     mileage_km = models.IntegerField(null=True, blank=True)
+    power_hp = models.IntegerField(null=True, blank=True)
 
     @property
     def date_tz(self):
@@ -304,6 +305,12 @@ class MobileBgAdUpdate(models.Model):
             mileage_parts = mileage_row.split()
             self.mileage_km = int(mileage_parts[0])
             assert mileage_parts[1] == 'км'
+
+        power_row = _get_info_row('Мощност')
+        if power_row:
+            power_parts = power_row.split()
+            self.power_hp = int(power_parts[0])
+            assert power_parts[1] == 'к.с.'
 
     @classmethod
     def from_html(cls, ad, html):

@@ -5,6 +5,7 @@
     <tr>
         <th></th>
         <th>Model</th>
+        <th>Year</th>
         <th>Initial price</th>
         <th>Last price</th>
         {% if ads|any_ad_inactive %}
@@ -20,13 +21,15 @@
             </td>
             <td>
                 <a href="{{ ad.url }}">
-                    {{ ad.first_update.model_name }}
-                    {{ ad.first_update.model_mod }}
-                    ({{ ad.first_update.registration_date.year }})
+                    {{ ad.last_active_update.model_name }}
+                    {{ ad.last_active_update.model_mod }}
                 </a>
             </td>
             <td>
-                {{ ad.first_update.price }}
+                {{ ad.last_active_update.registration_date.year }}
+            </td>
+            <td>
+                {{ ad.last_active_update.price }}
             </td>
             <td>
                 {{ ad.last_active_update.price }}
