@@ -100,6 +100,9 @@ class MobileBgAd(models.Model):
 
     @transaction.atomic()
     def download_images(self):
+        if not self.last_active_update:
+            print('No active update for ad', self.adv)
+            return
         urls_match = re.search('\s* var picts=new Array\((.*)\);\n', self.last_active_update.html)
         if not urls_match:
             print('No images for ad', self.adv)
