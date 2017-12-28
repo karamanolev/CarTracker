@@ -1,3 +1,5 @@
+{% load mobile_bg %}
+
 <table class="table table-sm">
     <thead>
     <tr>
@@ -5,7 +7,7 @@
         <th>Model</th>
         <th>Initial price</th>
         <th>Last price</th>
-        {% if not ad.active %}
+        {% if ads|any_ad_inactive %}
             <th>Last active</th>
         {% endif %}
     </tr>
@@ -20,6 +22,7 @@
                 <a href="{{ ad.url }}">
                     {{ ad.first_update.model_name }}
                     {{ ad.first_update.model_mod }}
+                    ({{ ad.first_update.registration_date.year }})
                 </a>
             </td>
             <td>

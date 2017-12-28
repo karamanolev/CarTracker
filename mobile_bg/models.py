@@ -19,6 +19,9 @@ class MobileBgScrapeLink(models.Model):
     name = models.CharField(max_length=64)
     last_update_date = models.DateTimeField(null=True, blank=True)
 
+    class Meta:
+        ordering = ('name',)
+
 
 class MobileBgAd(models.Model):
     topmenu = models.IntegerField()
