@@ -17,7 +17,7 @@ from CarTracker.utils import requests_get_retry, HttpNotFoundException
 class MobileBgScrapeLink(models.Model):
     slink = models.CharField(max_length=16)
     name = models.CharField(max_length=64)
-    last_update_date = models.DateTimeField(null=True)
+    last_update_date = models.DateTimeField(null=True, blank=True)
 
 
 class MobileBgAd(models.Model):
