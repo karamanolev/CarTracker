@@ -78,7 +78,6 @@ class MobileBgAd(models.Model):
         text = resp.content.decode('windows-1251')
         MobileBgAdUpdate.from_html(self, text)
 
-        is_first_update = self.first_update is None
         self.update_computed_fields()
         self.save()
         self.download_images()
