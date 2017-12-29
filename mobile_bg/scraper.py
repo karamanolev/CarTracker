@@ -14,6 +14,7 @@ from mobile_bg.models import MobileBgAd, MobileBgAdUpdate, MobileBgScrapeLink
 
 def _update_ads_list(scrape_link):
     page = 1
+    ad_count = 0
 
     while True:
         print('Fetching page {}'.format(page))
@@ -36,12 +37,14 @@ def _update_ads_list(scrape_link):
                 if not ad.active:
                     ad.active = True
                     ad.save()
+                ad_count += 1
         bs.decompose()
         sleep(settings.REQUEST_DELAY)
         page += 1
 
+    scrape_link.ad_count = ad_count
     scrape_link.last_update_date = timezone.now()
-    scrape_link.save(update_fields=('last_update_date',))
+    scrape_link.save(update_fields=['ad_count', 'last_update_date'])
 
 
 def _update_ad(ad):
