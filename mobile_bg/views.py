@@ -1,5 +1,4 @@
 import json
-from time import time
 
 from django.http.response import Http404, HttpResponse
 from django.shortcuts import render
@@ -57,15 +56,18 @@ def index(request):
 
 
 def recent_price_changes(request):
-    s = time()
-    l = list(MobileBgAd.get_recent_price_changes()[:100])
-    print(time() - s)
     return render(request, 'mobile_bg/recent_price_changes.html', {
-        'ads': l,
+        'ads': list(MobileBgAd.get_recent_price_changes().select_related(
+            'last_active_update',
+            'first_update',
+        )[:100]),
     })
 
 
 def recent_unlists(request):
     return render(request, 'mobile_bg/recent_unlists.html', {
-        'ads': MobileBgAd.get_recent_unlists()[:100],
+        'ads': list(MobileBgAd.get_recent_unlists().select_related(
+            'last_active_update',
+            'first_update',
+        )[:100]),
     })
