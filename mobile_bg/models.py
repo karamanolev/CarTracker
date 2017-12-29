@@ -29,7 +29,7 @@ class MobileBgAd(models.Model):
     adv = models.BigIntegerField(unique=True)
 
     # Computed fields
-    active = models.BooleanField(default=True)
+    active = models.BooleanField(default=True, db_index=True)
     first_update = models.ForeignKey('mobile_bg.MobileBgAdUpdate', models.CASCADE,
                                      null=True, related_name='first_update_ads')
     last_update = models.ForeignKey('mobile_bg.MobileBgAdUpdate', models.CASCADE,
@@ -155,6 +155,7 @@ class MobileBgAd(models.Model):
     def get_recent_unlists(cls):
         return MobileBgAd.objects.filter(
             active=False,
+            last_active_update__isnull=False,
         ).order_by('-last_active_update__date')
 
 
