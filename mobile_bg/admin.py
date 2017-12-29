@@ -4,7 +4,7 @@ from mobile_bg.models import MobileBgAd, MobileBgScrapeLink, MobileBgAdUpdate
 
 
 class MobileBgScrapeLinkAdmin(admin.ModelAdmin):
-    list_display = ('name', 'slink')
+    list_display = ('name', 'slink', 'ad_count')
 
 
 class MobileBgAdUpdateInline(admin.TabularInline):
