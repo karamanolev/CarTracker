@@ -1,4 +1,5 @@
 import json
+from time import time
 
 from django.http.response import Http404, HttpResponse
 from django.shortcuts import render
@@ -43,7 +44,9 @@ def ad_image(request, adv, index, size):
     else:
         raise Http404()
 
-    return HttpResponse(result, content_type='image/jpeg')
+    resp = HttpResponse(result, content_type='image/jpeg')
+    resp['Cache-Control'] = 'public, max-age=86400'
+    return resp
 
 
 def index(request):
@@ -54,8 +57,11 @@ def index(request):
 
 
 def recent_price_changes(request):
+    s = time()
+    l = list(MobileBgAd.get_recent_price_changes()[:100])
+    print(time() - s)
     return render(request, 'mobile_bg/recent_price_changes.html', {
-        'ads': MobileBgAd.get_recent_price_changes()[:100],
+        'ads': l,
     })
 
 
