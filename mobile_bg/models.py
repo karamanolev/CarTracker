@@ -208,7 +208,7 @@ class MobileBgAdUpdate(models.Model):
 
     PRICE_BY_NEGOTIATION = -1
 
-    date = models.DateTimeField(default=timezone.now)
+    date = models.DateTimeField(default=timezone.now, db_index=True)
     ad = models.ForeignKey(MobileBgAd, models.CASCADE, related_name='updates')
     prev_update = models.OneToOneField('self', models.CASCADE,
                                        null=True, related_name='next_update')

@@ -59,7 +59,6 @@ def recent_price_changes(request):
     })
 
 
-
 def recent_unlists(request):
     return render(request, 'mobile_bg/recent_unlists.html', {
         'ads': MobileBgAd.get_recent_unlists()[:100],
