@@ -187,9 +187,11 @@ class MobileBgAdImage(models.Model):
 class MobileBgAdUpdate(models.Model):
     CURRENCY_BGN = 0
     CURRENCY_EUR = 1
+    CURRENCY_USD = 2
     CURRENCY_CHOICES = (
         (CURRENCY_BGN, 'BGN'),
         (CURRENCY_EUR, 'EUR'),
+        (CURRENCY_USD, 'USD'),
     )
 
     ENGINE_PETROL = 0
@@ -267,6 +269,9 @@ class MobileBgAdUpdate(models.Model):
             elif 'EUR' in raw_price:
                 self.price = int(raw_price.replace('EUR', ''))
                 self.price_currency = self.CURRENCY_EUR
+            elif 'USD' in raw_price:
+                self.price = int(raw_price.replace('USD', ''))
+                self.price_currency = self.CURRENCY_USD
             else:
                 raise Exception('Unknown currency for price {}'.format(raw_price))
 
