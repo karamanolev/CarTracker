@@ -17,22 +17,22 @@ def _update_ads_list(scrape_link):
     ad_count = 0
 
     while True:
-        print('Fetching page {}'.format(page))
-        resp = requests_get_retry('https://www.mobile.bg/pcgi/mobile.cgi?{}'.format(
-            urlencode({
-                'act': '3',
-                'slink': scrape_link.slink,
-                'f1': str(page),
-            })))
-        text = resp.content.decode('windows-1251')
-        bs = BeautifulSoup(text, 'html.parser')
-        els = bs.find_all(attrs={'class': 'mmm'})
-        if not els:
-            print('Zero results on page {}'.format(page))
-            break
-        for el in els:
-            link = el['href']
-            with transaction.atomic():
+        with transaction.atomic():
+            print('Fetching page {}'.format(page))
+            resp = requests_get_retry('https://www.mobile.bg/pcgi/mobile.cgi?{}'.format(
+                urlencode({
+                    'act': '3',
+                    'slink': scrape_link.slink,
+                    'f1': str(page),
+                })))
+            text = resp.content.decode('windows-1251')
+            bs = BeautifulSoup(text, 'html.parser')
+            els = bs.find_all(attrs={'class': 'mmm'})
+            if not els:
+                print('Zero results on page {}'.format(page))
+                break
+            for el in els:
+                link = el['href']
                 ad = MobileBgAd.from_url(link)
                 if not ad.active:
                     ad.active = True
@@ -40,9 +40,9 @@ def _update_ads_list(scrape_link):
                 if ad.last_full_update:
                     ad.update_partial(el)
                 ad_count += 1
-        bs.decompose()
-        sleep(settings.REQUEST_DELAY)
-        page += 1
+            bs.decompose()
+            sleep(settings.REQUEST_DELAY)
+            page += 1
 
     scrape_link.ad_count = ad_count
     scrape_link.last_update_date = timezone.now()
