@@ -282,6 +282,9 @@ class MobileBgAdUpdate(models.Model):
     def update_from_html(self):
         if self.type == self.TYPE_PRICE_ONLY:
             prev = self.prev_update
+            while not prev.active:
+                prev = prev.prev_update
+
             self.model_name = prev.model_name
             self.model_mod = prev.model_mod
             self.registration_date = prev.registration_date
