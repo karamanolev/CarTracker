@@ -10,7 +10,6 @@ from django.utils import timezone
 
 from CarTracker.utils import requests_get_retry
 from mobile_bg.models import MobileBgAd, MobileBgAdUpdate, MobileBgScrapeLink
-from mobile_bg.utils import parse_mobile_bg_price
 
 
 def _update_ads_list(scrape_link):
@@ -35,9 +34,6 @@ def _update_ads_list(scrape_link):
             link = el['href']
             with transaction.atomic():
                 ad = MobileBgAd.from_url(link)
-                if ad.adv != 11513258494008383:
-                    ad.delete()
-                    continue
                 if not ad.active:
                     ad.active = True
                     ad.save()
@@ -87,7 +83,7 @@ def scrape():
         Q(last_full_update__date__lte=full_threshold, active=True),
     ).values_list('id', flat=True))
     print('To update:', ad_ids)
-    # _update_ads_by_id(ad_ids)
+    _update_ads_by_id(ad_ids)
 
 
 def print_ads_stats():
