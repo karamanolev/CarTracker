@@ -10,6 +10,7 @@ from django.utils import timezone
 
 from CarTracker.utils import requests_get_retry
 from mobile_bg.models import MobileBgAd, MobileBgAdUpdate, MobileBgScrapeLink
+from mobile_bg.utils import parse_mobile_bg_price
 
 
 def _update_ads_list(scrape_link):
@@ -34,9 +35,14 @@ def _update_ads_list(scrape_link):
             link = el['href']
             with transaction.atomic():
                 ad = MobileBgAd.from_url(link)
+                if ad.adv != 11513258494008383:
+                    ad.delete()
+                    continue
                 if not ad.active:
                     ad.active = True
                     ad.save()
+                if ad.last_full_update:
+                    ad.update_partial(el)
                 ad_count += 1
         bs.decompose()
         sleep(settings.REQUEST_DELAY)
@@ -64,19 +70,24 @@ def _update_ads_by_id(ids):
 
 
 def scrape():
-    threshold = timezone.now() - timedelta(hours=12)
+    slink_threshold = timezone.now() - timedelta(hours=12)
+    partial_threshold = timezone.now() - timedelta(hours=16)
+    full_threshold = timezone.now() - timedelta(hours=48)
 
     scrape_links = MobileBgScrapeLink.objects.filter(
-        Q(last_update_date__lte=threshold) | Q(last_update_date=None),
+        Q(last_update_date__lte=slink_threshold) | Q(last_update_date=None),
     )
     for scrape_link in scrape_links:
         print('Updating slink {}: {}'.format(scrape_link.slink, scrape_link.name))
         _update_ads_list(scrape_link)
 
-    ad_ids = MobileBgAd.objects.filter(
-        Q(last_update=None) | Q(last_update__date__lte=threshold, active=True),
-    ).values_list('id', flat=True)
-    _update_ads_by_id(ad_ids)
+    ad_ids = list(MobileBgAd.objects.filter(
+        Q(last_update=None) |
+        Q(last_update__date__lte=partial_threshold, active=True) |
+        Q(last_full_update__date__lte=full_threshold, active=True),
+    ).values_list('id', flat=True))
+    print('To update:', ad_ids)
+    # _update_ads_by_id(ad_ids)
 
 
 def print_ads_stats():

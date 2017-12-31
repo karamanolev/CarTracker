@@ -12,6 +12,7 @@ from django.db import models, transaction
 from django.utils import timezone
 
 from CarTracker.utils import requests_get_retry, HttpNotFoundException
+from mobile_bg.utils import parse_mobile_bg_price
 
 
 class MobileBgScrapeLink(models.Model):
@@ -39,6 +40,8 @@ class MobileBgAd(models.Model):
                                            null=True, related_name='last_active_update_ads')
     last_price_change = models.ForeignKey('mobile_bg.MobileBgAdUpdate', models.CASCADE,
                                           null=True, related_name='last_price_change_ads')
+    last_full_update = models.ForeignKey('mobile_bg.MobileBgAdUpdate', models.CASCADE,
+                                         null=True, related_name='last_full_update_ads')
 
     @property
     def url(self):
@@ -72,6 +75,10 @@ class MobileBgAd(models.Model):
             if update.active:
                 self.last_active_update = update
                 break
+        for update in updates[::-1]:
+            if update.type == MobileBgAdUpdate.TYPE_FULL:
+                self.last_full_update = update
+                break
 
     def update(self):
         resp = requests_get_retry(self.url)
@@ -82,6 +89,17 @@ class MobileBgAd(models.Model):
         self.update_computed_fields()
         self.save()
         self.download_images()
+
+    def update_partial(self, el):
+        raw_price = el.parent.next_sibling.next_sibling.text
+        if raw_price.strip() == 'Договаряне':
+            price, price_currency = MobileBgAdUpdate.PRICE_BY_NEGOTIATION, None
+        else:
+            price, price_currency = parse_mobile_bg_price(raw_price)
+        MobileBgAdUpdate.from_price_partial(self, price, price_currency)
+
+        self.update_computed_fields()
+        self.save()
 
     def get_filtered_updates(self):
         updates = list(self.updates.order_by('date').all())
@@ -187,6 +205,13 @@ class MobileBgAdImage(models.Model):
 
 
 class MobileBgAdUpdate(models.Model):
+    TYPE_FULL = 0
+    TYPE_PRICE_ONLY = 1
+    TYPE_CHOICES = (
+        (TYPE_FULL, 'Full'),
+        (TYPE_PRICE_ONLY, 'Price Only'),
+    )
+
     CURRENCY_BGN = 0
     CURRENCY_EUR = 1
     CURRENCY_USD = 2
@@ -211,15 +236,16 @@ class MobileBgAdUpdate(models.Model):
 
     date = models.DateTimeField(default=timezone.now, db_index=True)
     ad = models.ForeignKey(MobileBgAd, models.CASCADE, related_name='updates')
+    type = models.IntegerField(default=TYPE_FULL, choices=TYPE_CHOICES)
     prev_update = models.OneToOneField('self', models.CASCADE,
                                        null=True, related_name='next_update')
+    active = models.BooleanField(default=True, db_index=True)
 
     html_raw = models.TextField(null=True)
     html_delta = models.BinaryField(null=True)
 
     model_name = models.CharField(max_length=128)
     model_mod = models.CharField(max_length=128)
-    active = models.BooleanField(default=True, db_index=True)
     price = models.IntegerField(null=True, blank=True)
     price_currency = models.IntegerField(null=True, blank=True, choices=CURRENCY_CHOICES)
     registration_date = models.DateField(null=True, blank=True)
@@ -254,6 +280,16 @@ class MobileBgAdUpdate(models.Model):
             self.html_raw = None
 
     def update_from_html(self):
+        if self.type == self.TYPE_PRICE_ONLY:
+            prev = self.prev_update
+            self.model_name = prev.model_name
+            self.model_mod = prev.model_mod
+            self.registration_date = prev.registration_date
+            self.engine_type = prev.engine_type
+            self.mileage_km = prev.mileage_km
+            self.power_hp = prev.power_hp
+            return
+
         bs = BeautifulSoup(self.html, 'html.parser')
         if len(bs.find_all(style='font-size:18px; font-weight:bold; color:#FF0000')):
             self.active = False
@@ -262,20 +298,10 @@ class MobileBgAdUpdate(models.Model):
 
         price_by_negotiation = bs.find(style='font-size:13px; font-weight:bold;')
         if price_by_negotiation:
-            self.price = self.PRICE_BY_NEGOTIATION
+            self.price, self.price_currency = self.PRICE_BY_NEGOTIATION, None
         else:
-            raw_price = bs.find(style='font-size:15px; font-weight:bold;').text.replace(' ', '')
-            if 'лв.' in raw_price:
-                self.price = int(raw_price.replace('лв.', ''))
-                self.price_currency = self.CURRENCY_BGN
-            elif 'EUR' in raw_price:
-                self.price = int(raw_price.replace('EUR', ''))
-                self.price_currency = self.CURRENCY_EUR
-            elif 'USD' in raw_price:
-                self.price = int(raw_price.replace('USD', ''))
-                self.price_currency = self.CURRENCY_USD
-            else:
-                raise Exception('Unknown currency for price {}'.format(raw_price))
+            raw_price = bs.find(style='font-size:15px; font-weight:bold;').text
+            self.price, self.price_currency = parse_mobile_bg_price(raw_price)
 
         raw_name = bs.find(style='font-size:18px; font-weight:bold;')
         raw_name_children = list(raw_name.children)
@@ -322,9 +348,27 @@ class MobileBgAdUpdate(models.Model):
             assert power_parts[1] == 'к.с.'
 
     @classmethod
+    def from_price_partial(cls, ad, price, price_currency):
+        prev_update = ad.last_update
+        update = cls(
+            ad=ad,
+            type=cls.TYPE_PRICE_ONLY,
+            prev_update=prev_update,
+            html=prev_update.html,
+            active=True,
+            price=price,
+            price_currency=price_currency,
+        )
+        update.update_from_html()
+        update.try_compress()
+        update.save()
+        return update
+
+    @classmethod
     def from_html(cls, ad, html):
         update = cls(
             ad=ad,
+            type=cls.TYPE_FULL,
             prev_update=ad.last_update,
             html=html,
         )
