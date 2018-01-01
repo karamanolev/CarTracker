@@ -33,9 +33,11 @@ def requests_get_retry(url):
             )
             resp.raise_for_status()
             return resp
-        except RequestException as ex:
-            if ex.response is not None and ex.response.status_code == 404:
+        except (ConnectionError, RequestException) as ex:
+            response = getattr(ex, 'response')
+            if response is not None and response.status_code == 404:
                 raise HttpNotFoundException()
+
             retries_left -= 1
             if not retries_left:
                 raise
