@@ -19,6 +19,8 @@ from mobile_bg.utils import parse_mobile_bg_price
 class MobileBgScrapeLink(models.Model):
     slink = models.CharField(max_length=16)
     name = models.CharField(max_length=64)
+    min_price = models.IntegerField(null=True, blank=True)
+    max_price = models.IntegerField(null=True, blank=True)
     last_update_date = models.DateTimeField(null=True, blank=True)
     ad_count = models.IntegerField(null=True, blank=True)
 
