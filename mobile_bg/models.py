@@ -149,7 +149,7 @@ class MobileBgAd(models.Model):
                 big_url=big_url,
             )
             images.append(ad_image)
-        pool = dummy.Pool(10)
+        pool = dummy.Pool(5)
         pool.map(lambda i: i.download(), images)
         pool.close()
         for image in images:
