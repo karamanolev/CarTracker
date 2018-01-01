@@ -1,14 +1,11 @@
 from datetime import timedelta
-from time import sleep
-from urllib.parse import urlencode
 
 from bs4 import BeautifulSoup
-from django.conf import settings
 from django.db import transaction
 from django.db.models.query_utils import Q
 from django.utils import timezone
 
-from CarTracker.utils import requests_get_retry
+from mobile_bg.api import get_search_page
 from mobile_bg.models import MobileBgAd, MobileBgAdUpdate, MobileBgScrapeLink
 
 
@@ -19,13 +16,7 @@ def _update_ads_list(scrape_link):
     while True:
         with transaction.atomic():
             print('Fetching page {}'.format(page))
-            resp = requests_get_retry('https://www.mobile.bg/pcgi/mobile.cgi?{}'.format(
-                urlencode({
-                    'act': '3',
-                    'slink': scrape_link.slink,
-                    'f1': str(page),
-                })))
-            text = resp.content.decode('windows-1251')
+            text = get_search_page('3', scrape_link.slink, page)
             bs = BeautifulSoup(text, 'html.parser')
             els = bs.find_all(attrs={'class': 'mmm'})
             if not els:
@@ -41,7 +32,6 @@ def _update_ads_list(scrape_link):
                     ad.update_partial(el)
                 ad_count += 1
             bs.decompose()
-            sleep(settings.REQUEST_DELAY)
             page += 1
 
     scrape_link.ad_count = ad_count

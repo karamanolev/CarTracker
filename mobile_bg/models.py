@@ -13,6 +13,7 @@ from django.db import models, transaction
 from django.utils import timezone
 
 from CarTracker.utils import requests_get_retry, HttpNotFoundException
+from mobile_bg.api import get_search_page
 from mobile_bg.utils import parse_mobile_bg_price
 
 
@@ -25,7 +26,33 @@ class MobileBgScrapeLink(models.Model):
     ad_count = models.IntegerField(null=True, blank=True)
 
     class Meta:
-        ordering = ('name',)
+        ordering = ('name', 'max_price')
+
+    def verify(self):
+        text = get_search_page('3', self.slink, 1)
+        bs = BeautifulSoup(text, 'html.parser')
+        cell = bs.find(text='Резултат от Вашето търсене на:')
+        search_text = cell.parent.parent.text
+        if self.min_price and self.max_price:
+            expected_price = 'Цена: от {} до {} лв., '.format(self.min_price, self.max_price)
+        elif self.min_price:
+            expected_price = 'Цена: от {} лв., '.format(self.min_price)
+        elif self.max_price:
+            expected_price = 'Цена: до {} лв., '.format(self.max_price)
+        else:
+            expected_price = ''
+        expected_text = (
+            '\nРезултат от Вашето търсене на:'
+            '\n            Рубрика: Автомобили, {}; Състояние: Употребявани, Нови, '
+            '{}'
+            'Особености: Подредени по: Марка/Модел/Цена\n'
+        ).format(
+            self.name,
+            expected_price,
+        )
+        if search_text != expected_text:
+            raise Exception('Slink {} does not verify "{}" != "{}"'.format(
+                self.slink, search_text, expected_text))
 
 
 class MobileBgAd(models.Model):
