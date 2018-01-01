@@ -214,11 +214,11 @@ class MobileBgAd(models.Model):
 
 
 def _image_small_upload_to(i, f):
-    return 'mobile_bg/ads/{}/{}/small/{}'.format(str(i.ad.adv)[-3:], i.ad.adv, f)
+    return 'mobile_bg/ads/{}/{}/small/{}'.format(str(i.ad.adv)[-2:], i.ad.adv, f)
 
 
 def _image_big_upload_to(i, f):
-    return 'mobile_bg/ads/{}/{}/big/{}'.format(str(i.ad.adv)[-3:], i.ad.adv, f)
+    return 'mobile_bg/ads/{}/{}/big/{}'.format(str(i.ad.adv)[-2:], i.ad.adv, f)
 
 
 class MobileBgAdImage(models.Model):
@@ -231,11 +231,10 @@ class MobileBgAdImage(models.Model):
 
     def _download(self, url):
         try:
-            filename = '{}_{}.jpg'.format(self.ad.adv, self.index)
             print('Downloading image {}'.format(url))
             resp = requests_get_retry(url)
             sleep(settings.REQUEST_DELAY / 2)
-            return ContentFile(resp.content, filename)
+            return ContentFile(resp.content, '{}.jpg'.format(self.index))
         except HttpNotFoundException:
             return None
 
