@@ -11,6 +11,7 @@ class MobileBgScrapeLinkAdmin(admin.ModelAdmin):
         'slink',
         'ad_count',
     )
+    list_per_page = 200
 
 
 class MobileBgAdUpdateInline(admin.TabularInline):

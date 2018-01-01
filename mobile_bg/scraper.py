@@ -42,9 +42,9 @@ def _update_ads_list(scrape_link):
 def _update_ad(ad):
     with transaction.atomic():
         last_update = None
-        if ad.last_update:
-            last_update = ad.last_update.date
-        print('Updating {} (last update {})'.format(ad.adv, last_update))
+        if ad.last_full_update:
+            last_update = ad.last_full_update.date
+        print('Updating {} (last full update {})'.format(ad.adv, last_update))
         ad.update()
 
 
@@ -92,8 +92,24 @@ def verify_slinks():
     scrape_links = list(MobileBgScrapeLink.objects.all())
     scrape_brands = {i.name for i in scrape_links}
     missing_brands = brands - scrape_brands
+    extra_brands = brands - scrape_brands
     if missing_brands:
         raise Exception('Brands {} is missing a link!'.format(', '.join(sorted(missing_brands))))
+    if extra_brands:
+        raise Exception('Brands {} is no longer found!'.format(', '.join(sorted(missing_brands))))
+
+    print('Verifying ranges')
+    for brand in brands:
+        brand_links = [i for i in scrape_links if i.name == brand]
+        if not brand_links:
+            raise Exception('No brand links for {}'.format(brand))
+        if brand_links[0].min_price is not None:
+            raise Exception('Invalid first min_price for {}'.format(brand))
+        if brand_links[-1].max_price is not None:
+            raise Exception('Invalid last max_price for {}'.format(brand))
+        for i in range(1, len(brand_links)):
+            if brand_links[i].min_price != brand_links[i - 1].max_price:
+                raise Exception('Invalid min_price for {} on {}'.format(brand, i))
     return
     for scrape_link in scrape_links:
         print('Verifying {}'.format(scrape_link.slink))

@@ -58,7 +58,6 @@ class MobileBgScrapeLink(models.Model):
 
 class MobileBgAd(models.Model):
     topmenu = models.IntegerField()
-    act = models.IntegerField()
     adv = models.BigIntegerField(unique=True)
 
     # Computed fields
@@ -79,7 +78,7 @@ class MobileBgAd(models.Model):
         return 'https://www.mobile.bg/pcgi/mobile.cgi?{}'.format(
             urlencode({
                 'topmenu': self.topmenu,
-                'act': self.act,
+                'act': '4',
                 'adv': self.adv,
             }))
 
@@ -196,7 +195,6 @@ class MobileBgAd(models.Model):
         except cls.DoesNotExist:
             return cls.objects.create(
                 topmenu=qs['topmenu'][0],
-                act=qs['act'][0],
                 adv=adv,
             )
 
@@ -215,13 +213,21 @@ class MobileBgAd(models.Model):
         ).order_by('-last_active_update__date')
 
 
+def _image_small_upload_to(i, f):
+    return 'mobile_bg/ads/{}/small/'.format(str(i.adv)[-3:])
+
+
+def _image_big_upload_to(i, f):
+    return 'mobile_bg/ads/{}/big/'.format(str(i.adv)[-3:])
+
+
 class MobileBgAdImage(models.Model):
     ad = models.ForeignKey(MobileBgAd, models.CASCADE, related_name='images')
     index = models.IntegerField()
     small_url = models.CharField(max_length=512)
     big_url = models.CharField(max_length=512)
-    image_small = models.FileField(upload_to='mobile_bg/images/small/')
-    image_big = models.FileField(upload_to='mobile_bg/images/big/')
+    image_small = models.FileField(upload_to=_image_small_upload_to)
+    image_big = models.FileField(upload_to=_image_big_upload_to)
 
     def _download(self, url):
         try:
