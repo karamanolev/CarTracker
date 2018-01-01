@@ -81,7 +81,7 @@ def scrape():
         Q(last_update=None) |
         Q(last_update__date__lte=partial_threshold, active=True) |
         Q(last_full_update__date__lte=full_threshold, active=True),
-    ).values_list('id', flat=True))
+    ).values_list('id', flat=True)[:100])
     _update_ads_by_id(ad_ids)
 
 
