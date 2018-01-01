@@ -1,6 +1,7 @@
 import json
 import re
 from datetime import date
+from multiprocessing import dummy
 from time import sleep
 from urllib.parse import urlparse, parse_qs, urlencode
 
@@ -129,6 +130,7 @@ class MobileBgAd(models.Model):
         urls = urls.replace('"', '\\"').replace("'", '"')
         urls_list = ['https:' + i for i in json.loads('[{}]'.format(urls))]
         urls_list.sort()
+        images = []
         for big_url in urls_list:
             index = int(re.search(r'_(\d+)\.pic$', big_url).group(1))
 
@@ -146,8 +148,12 @@ class MobileBgAd(models.Model):
                 small_url=small_url,
                 big_url=big_url,
             )
-            ad_image.download()
-            ad_image.save()
+            images.append(ad_image)
+        pool = dummy.Pool(10)
+        pool.map(lambda i: i.download(), images)
+        pool.close()
+        for image in images:
+            image.save()
 
     @classmethod
     def from_url(cls, url):
@@ -284,6 +290,8 @@ class MobileBgAdUpdate(models.Model):
             prev = self.prev_update
             while not prev.active:
                 prev = prev.prev_update
+                if prev is None:
+                    return
 
             self.model_name = prev.model_name
             self.model_mod = prev.model_mod

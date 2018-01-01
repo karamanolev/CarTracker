@@ -1,3 +1,4 @@
+import traceback
 from datetime import date, datetime
 from time import sleep
 
@@ -39,4 +40,5 @@ def requests_get_retry(url):
             if not retries_left:
                 raise
             sleep(settings.REQUEST_RETRY_TIMEOUT)
+            traceback.print_exc()
             print('Requesting {} failed, retrying...'.format(url))
