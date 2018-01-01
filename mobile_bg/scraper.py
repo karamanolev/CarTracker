@@ -5,7 +5,7 @@ from django.db import transaction
 from django.db.models.query_utils import Q
 from django.utils import timezone
 
-from mobile_bg.api import get_search_page
+from mobile_bg.api import get_search_page, get_home_page
 from mobile_bg.models import MobileBgAd, MobileBgAdUpdate, MobileBgScrapeLink
 
 
@@ -81,3 +81,20 @@ def print_ads_stats():
         MobileBgAd.objects.filter(last_update__active=True).count()))
     print('Number of ad updates: {}'.format(MobileBgAdUpdate.objects.count()))
     print('---------------------')
+
+
+def verify_slinks():
+    print('Verifying makes')
+    resp = get_home_page()
+    bs = BeautifulSoup(resp, 'html5lib')
+    brands = {i.text.strip() for i in bs.find(attrs={'name': 'marka'}).find_all(name='option')
+              if i.text != 'всички\n'}
+    scrape_links = list(MobileBgScrapeLink.objects.all())
+    scrape_brands = {i.name for i in scrape_links}
+    missing_brands = brands - scrape_brands
+    if missing_brands:
+        raise Exception('Brands {} is missing a link!'.format(', '.join(sorted(missing_brands))))
+    return
+    for scrape_link in scrape_links:
+        print('Verifying {}'.format(scrape_link.slink))
+        scrape_link.verify()

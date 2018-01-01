@@ -19,12 +19,13 @@ def json_serialize(obj):
     raise TypeError("Type %s not serializable" % type(obj))
 
 
-def requests_get_retry(url):
+def requests_get_retry(url, params=None):
     retries_left = 5
     while True:
         try:
             resp = requests.get(
                 url,
+                params=params,
                 headers={
                     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/537.36'
                                   ' (KHTML, like Gecko) Chrome/63.0.3239.108 Safari/537.36',

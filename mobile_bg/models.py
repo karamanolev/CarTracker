@@ -33,6 +33,7 @@ class MobileBgScrapeLink(models.Model):
         bs = BeautifulSoup(text, 'html.parser')
         cell = bs.find(text='Резултат от Вашето търсене на:')
         search_text = cell.parent.parent.text
+        search_text = search_text.replace('Особености: ', '')
         if self.min_price and self.max_price:
             expected_price = 'Цена: от {} до {} лв., '.format(self.min_price, self.max_price)
         elif self.min_price:
@@ -45,7 +46,7 @@ class MobileBgScrapeLink(models.Model):
             '\nРезултат от Вашето търсене на:'
             '\n            Рубрика: Автомобили, {}; Състояние: Употребявани, Нови, '
             '{}'
-            'Особености: Подредени по: Марка/Модел/Цена\n'
+            'Подредени по: Марка/Модел/Цена\n'
         ).format(
             self.name,
             expected_price,
