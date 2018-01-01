@@ -180,11 +180,7 @@ class MobileBgAd(models.Model):
             images.append(ad_image)
         pool = dummy.Pool(5)
 
-        def _download(i):
-            i.download()
-            sleep(0.5)
-
-        pool.map(_download, images)
+        pool.map(lambda i: i.download(), images)
         pool.close()
         for image in images:
             image.save()
@@ -231,7 +227,7 @@ class MobileBgAdImage(models.Model):
             filename = '{}_{}.jpg'.format(self.ad.adv, self.index)
             print('Downloading image {}'.format(url))
             resp = requests_get_retry(url)
-            sleep(settings.REQUEST_DELAY / 4)
+            sleep(settings.REQUEST_DELAY / 2)
             return ContentFile(resp.content, filename)
         except HttpNotFoundException:
             return None
