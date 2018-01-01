@@ -179,7 +179,12 @@ class MobileBgAd(models.Model):
             )
             images.append(ad_image)
         pool = dummy.Pool(5)
-        pool.map(lambda i: i.download(), images)
+
+        def _download(i):
+            i.download()
+            sleep(0.5)
+
+        pool.map(_download, images)
         pool.close()
         for image in images:
             image.save()
