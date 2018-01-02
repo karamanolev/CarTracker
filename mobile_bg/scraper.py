@@ -58,7 +58,7 @@ def _update_ads_by_id(ids):
 def scrape():
     slink_threshold = timezone.now() - timedelta(hours=12)
     partial_threshold = timezone.now() - timedelta(hours=16)
-    full_threshold = timezone.now() - timedelta(hours=48)
+    full_threshold = timezone.now() - timedelta(hours=72)
 
     scrape_links = MobileBgScrapeLink.objects.filter(
         Q(last_update_date__lte=slink_threshold) | Q(last_update_date=None),
@@ -110,7 +110,7 @@ def verify_slinks():
         for i in range(1, len(brand_links)):
             if brand_links[i].min_price != brand_links[i - 1].max_price:
                 raise Exception('Invalid min_price for {} on {}'.format(brand, i))
-    return
+
     for scrape_link in scrape_links:
         print('Verifying {}'.format(scrape_link.slink))
         scrape_link.verify()
