@@ -214,11 +214,11 @@ class MobileBgAd(models.Model):
 
 
 def _image_small_upload_to(i, f):
-    return 'mobile_bg/ads/{}/{}/small/{}'.format(str(i.ad.adv)[-2:], i.ad.adv, f)
+    return 'mobile_bg/ads/{}/{}/small/{}'.format(str(i.ad.adv)[-3:], i.ad.adv, f)
 
 
 def _image_big_upload_to(i, f):
-    return 'mobile_bg/ads/{}/{}/big/{}'.format(str(i.ad.adv)[-2:], i.ad.adv, f)
+    return 'mobile_bg/ads/{}/{}/big/{}'.format(str(i.ad.adv)[-3:], i.ad.adv, f)
 
 
 class MobileBgAdImage(models.Model):

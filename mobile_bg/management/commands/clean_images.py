@@ -1,4 +1,5 @@
 import os
+from time import sleep
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -8,6 +9,7 @@ from mobile_bg.models import MobileBgAdImage
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
+        print('Scanning database...')
         files = set()
         for item in MobileBgAdImage.objects.all().values_list('image_small', 'image_big'):
             for i in item:
@@ -22,6 +24,7 @@ class Command(BaseCommand):
             else:
                 removed.add(rel_path)
 
+        print('Scanning filesystem...')
         for dirpath, dirnames, filenames in os.walk(settings.MEDIA_ROOT):
             for filename in filenames:
                 abs_path = os.path.join(dirpath, filename)
