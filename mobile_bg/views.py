@@ -39,7 +39,7 @@ def ad_image(request, adv, index, size):
     if size == 'big':
         result = ad_image.image_big.read()
     elif size == 'small':
-        result = ad_image.image_small.read()
+        raise Http404()
     else:
         raise Http404()
 

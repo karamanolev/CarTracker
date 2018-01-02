@@ -9,10 +9,7 @@ from mobile_bg.models import MobileBgAdImage
 class Command(BaseCommand):
     def handle(self, *args, **options):
         print('Scanning database...')
-        db_files = set()
-        for item in MobileBgAdImage.objects.all().values_list('image_small', 'image_big'):
-            for i in item:
-                db_files.add(i)
+        db_files = set(MobileBgAdImage.objects.all().values_list('image_big', flat=True))
 
         print('Scanning filesystem...')
         fs_files = set()

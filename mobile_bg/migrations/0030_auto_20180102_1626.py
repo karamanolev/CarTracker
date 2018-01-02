@@ -19,6 +19,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='mobilebgadimage',
             name='image_small',
-            field=models.FileField(upload_to=mobile_bg.models._image_small_upload_to),
+            field=models.FileField(upload_to='doesnt/matter'),
         ),
     ]

@@ -45,3 +45,14 @@ def requests_get_retry(url, params=None):
             sleep(settings.REQUEST_RETRY_TIMEOUT)
             traceback.print_exc()
             print('Requesting {} failed, retrying...'.format(url))
+
+
+def batch(iterable, n):
+    current_batch = []
+    for i in iterable:
+        current_batch.append(i)
+        if len(current_batch) >= n:
+            yield current_batch
+            current_batch = []
+    if current_batch:
+        yield current_batch

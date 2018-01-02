@@ -1,30 +1,48 @@
-from django.core.files.base import ContentFile
+import os
+
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from mobile_bg.models import MobileBgAdImage, _image_small_upload_to, _image_big_upload_to
+from CarTracker.utils import batch
+from mobile_bg.models import MobileBgAdImage, _image_big_upload_to
 
 
 class Command(BaseCommand):
-    def fix_images(self, ad_im):
-        small_content = ad_im.image_small.read()
-        big_content = ad_im.image_big.read()
-        ad_im.image_small = ContentFile(small_content, '{}.jpg'.format(ad_im.index))
-        ad_im.image_big = ContentFile(big_content, '{}.jpg'.format(ad_im.index))
-        ad_im.save()
-
     def handle(self, *args, **options):
+        total = 0
+        renamed = 0
+        skipped = 0
+        ok = 0
+
         print('Scanning...')
-        for i, item in enumerate(MobileBgAdImage.objects.all()):
-            original_filename = '{}.jpg'.format(item.index)
-            small_path = _image_small_upload_to(item, original_filename)
-            big_path = _image_big_upload_to(item, original_filename)
+        ids = MobileBgAdImage.objects.all().values_list('id', flat=True)
+        for ids_batch in batch(ids, 1000):
+            images = MobileBgAdImage.objects.filter(id__in=ids_batch).select_related('ad')
+            for item in images:
+                total += 1
+                if not item.image_big.name:
+                    skipped += 1
+                    continue
 
-            if small_path != item.image_small.name or big_path != item.image_big.name:
-                if small_path != item.image_small.name:
-                    pass  # print('Fix {} -> {}'.format(item.image_small.name, small_path))
-                if big_path != item.image_big.name:
-                    pass  # print('Fix {} -> {}'.format(item.image_big.name, big_path))
-                self.fix_images(item)
+                original_filename = '{}.jpg'.format(item.index)
+                new_rel_path = _image_big_upload_to(item, original_filename)
+                old_abs_path = os.path.join(settings.MEDIA_ROOT, item.image_big.name)
+                new_abs_path = os.path.join(settings.MEDIA_ROOT, new_rel_path)
 
-            if i % 50 == 0:
-                print('{}'.format(i + 1))
+                if new_rel_path != item.image_big.name:
+                    if os.path.isfile(new_abs_path) or not os.path.isfile(old_abs_path):
+                        raise Exception('New exists or old missing; old="{}" new="{}"'.format(
+                            old_abs_path, new_abs_path))
+                    item.image_big.name = new_rel_path
+                    item.save()
+                    os.rename(old_abs_path, new_abs_path)
+                    renamed += 1
+                else:
+                    ok += 1
+
+                if total % 100 == 0:
+                    print('Total: {}'.format(total))
+                    print('Renamed: {}'.format(renamed))
+                    print('Skipped: {}'.format(skipped))
+                    print('OK: {}'.format(ok))
+                    print()

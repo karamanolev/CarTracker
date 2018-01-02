@@ -118,7 +118,7 @@ class MobileBgAd(models.Model):
 
         self.update_computed_fields()
         self.save()
-        self.download_images()
+        # self.download_images()
 
     def update_partial(self, el):
         raw_price = el.parent.next_sibling.next_sibling.text
@@ -213,12 +213,8 @@ class MobileBgAd(models.Model):
         ).order_by('-last_active_update__date')
 
 
-def _image_small_upload_to(i, f):
-    return 'mobile_bg/ads/{}/{}/small/{}'.format(str(i.ad.adv)[-3:], i.ad.adv, f)
-
-
 def _image_big_upload_to(i, f):
-    return 'mobile_bg/ads/{}/{}/big/{}'.format(str(i.ad.adv)[-3:], i.ad.adv, f)
+    return 'mobile_bg/ads/{}/{}/{}'.format(str(i.ad.adv)[-3:], i.ad.adv, f)
 
 
 class MobileBgAdImage(models.Model):
@@ -226,7 +222,6 @@ class MobileBgAdImage(models.Model):
     index = models.IntegerField()
     small_url = models.CharField(max_length=512)
     big_url = models.CharField(max_length=512)
-    image_small = models.FileField(upload_to=_image_small_upload_to)
     image_big = models.FileField(upload_to=_image_big_upload_to)
 
     def _download(self, url):
@@ -239,7 +234,6 @@ class MobileBgAdImage(models.Model):
             return None
 
     def download(self):
-        self.image_small = self._download(self.small_url)
         self.image_big = self._download(self.big_url)
 
     class Meta:
