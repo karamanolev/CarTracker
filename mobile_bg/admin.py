@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.humanize.templatetags import humanize
 
 from mobile_bg.models import MobileBgAd, MobileBgScrapeLink, MobileBgAdUpdate
 
@@ -10,8 +11,12 @@ class MobileBgScrapeLinkAdmin(admin.ModelAdmin):
         'max_price',
         'slink',
         'ad_count',
+        'last_updated'
     )
     list_per_page = 200
+
+    def last_updated(self, obj):
+        return humanize.naturaltime(obj.last_update_date)
 
 
 class MobileBgAdUpdateInline(admin.TabularInline):
