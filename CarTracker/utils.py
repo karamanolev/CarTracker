@@ -1,9 +1,11 @@
+import json
 import traceback
 from datetime import date, datetime
 from time import sleep
 
 import requests
 from django.conf import settings
+from django.http import HttpResponse
 from requests import RequestException
 
 
@@ -58,3 +60,12 @@ def batch(iterable, n):
             current_batch = []
     if current_batch:
         yield current_batch
+
+
+def json_response(data):
+    response = HttpResponse(
+        json.dumps(data, default=json_serialize),
+        content_type='application/json',
+    )
+    response['Access-Control-Allow-Origin'] = '*'
+    return response

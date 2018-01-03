@@ -301,8 +301,10 @@ class MobileBgAdUpdate(models.Model):
                 self.prev_update.html.encode(),
                 self.html_delta,
             ).decode()
-        else:
+        elif self.html_raw:
             return self.html_raw
+        else:
+            return self.prev_update.html
 
     @html.setter
     def html(self, value):
@@ -396,7 +398,7 @@ class MobileBgAdUpdate(models.Model):
             ad=ad,
             type=cls.TYPE_PRICE_ONLY,
             prev_update=prev_update,
-            html=prev_update.html,
+            html=None,
             active=True,
             price=price,
             price_currency=price_currency,
@@ -427,3 +429,6 @@ class MobileBgAdUpdate(models.Model):
             self.price,
             self.get_price_currency_display(),
         )
+
+    class Meta:
+        ordering = ('date',)

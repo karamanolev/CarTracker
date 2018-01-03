@@ -38,11 +38,10 @@ function initChartjs(data) {
         });
 }
 
-async function initPriceChart(advId) {
+async function initAdInfo(advId) {
     let resp;
     try {
         resp = await fetch('https://ct.kukite.com/mobile-bg/ads/' + advId);
-
     } catch (e) {
         console.warn('Extension failed to retrieve data:', e);
         return;
@@ -56,11 +55,44 @@ async function initPriceChart(advId) {
     initChartjs(data);
 }
 
+async function initAdsListInfo() {
+    let advs = $('.mmm').map((i, e) => {
+        const url = new URL(e.href),
+            search = new URLSearchParams(url.search);
+        return search.get('adv');
+    }).toArray();
+
+    let resp = await fetch('https://ct.kukite.com/mobile-bg/ads/?' +
+        $.param({advs: advs.join(',')}));
+    console.log(resp);
+
+    function createInfoCol(column, header, text) {
+        return [
+            $('<div>').css('grid-column', column).css('grid-row', '1').text(header),
+            $('<div>').css('grid-column', column).css('grid-row', '2').text(text),
+        ];
+    }
+
+    $('.mmm').each(function(i, e) {
+        const $e = $(e),
+            $trBefore = $e.closest('tr').next().next(),
+            grid = $('<div>').addClass('ads-list-info-container');
+        grid.append(createInfoCol('1', 'Added', 'hello'));
+        grid.append(createInfoCol('2', 'Start price', 'asdf'));
+        $trBefore.after($('<tr>').append(
+            $('<td>').attr('colspan', 5).append(grid)
+        ));
+    });
+}
+
+
 $(() => {
     if (window.location.pathname === '/pcgi/mobile.cgi') {
         const params = new URLSearchParams(window.location.search);
-        if (params.get('act') === '4') {
-            initPriceChart(params.get('adv'));
+        if (params.get('act') === '3') {
+            initAdsListInfo();
+        } else if (params.get('act') === '4') {
+            initAdInfo(params.get('adv'));
         }
     }
 });

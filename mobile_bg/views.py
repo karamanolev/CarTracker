@@ -1,10 +1,9 @@
-import json
-
 from django.http.response import Http404, HttpResponse
 from django.shortcuts import render
 
-from CarTracker.utils import json_serialize
+from CarTracker.utils import json_response
 from mobile_bg.models import MobileBgAd, MobileBgAdImage
+from mobile_bg.serializers import MobileBgAdSerializer
 
 
 def ad_data(request, adv):
@@ -15,19 +14,20 @@ def ad_data(request, adv):
 
     filtered = ad.get_filtered_updates()
 
-    response = HttpResponse(
-        json.dumps({
-            'added': ad.first_update.date,
-            'url': ad.url,
-            'updates': [{
-                'date': i.date,
-                'price': i.price,
-            } for i in filtered],
-        }, default=json_serialize),
-        content_type='application/json',
-    )
-    response['Access-Control-Allow-Origin'] = '*'
-    return response
+    return json_response({
+        'added': ad.first_update.date,
+        'url': ad.url,
+        'updates': [{
+            'date': i.date,
+            'price': i.price,
+        } for i in filtered],
+    })
+
+
+def ads_data(request):
+    advs = request.GET['advs'].split(',')
+    ads = list(MobileBgAd.objects.filter(adv__in=advs))
+    return json_response({ad.adv: MobileBgAdSerializer(ad).data for ad in ads})
 
 
 def ad_image(request, adv, index, size):

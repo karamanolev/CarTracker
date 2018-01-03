@@ -5,3 +5,4 @@ bsdiff4==1.1.4
 psycopg2==2.7.3.2
 django-debug-toolbar==1.9.1
 html5lib==1.0.1
+djangorestframework==3.7.7

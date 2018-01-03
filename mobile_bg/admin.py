@@ -18,6 +18,8 @@ class MobileBgScrapeLinkAdmin(admin.ModelAdmin):
     def last_updated(self, obj):
         return humanize.naturaltime(obj.last_update_date)
 
+    last_updated.admin_order_field = 'last_update_date'
+
 
 class MobileBgAdUpdateInline(admin.TabularInline):
     model = MobileBgAdUpdate
