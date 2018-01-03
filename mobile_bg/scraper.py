@@ -17,7 +17,7 @@ def _update_ads_list(scrape_link):
         with transaction.atomic():
             print('Fetching page {}'.format(page))
             text = get_search_page('3', scrape_link.slink, page)
-            bs = BeautifulSoup(text, 'html.parser')
+            bs = BeautifulSoup(text, 'html5lib')
             els = bs.find_all(attrs={'class': 'mmm'})
             if not els:
                 print('Zero results on page {}'.format(page))

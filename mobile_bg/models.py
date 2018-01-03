@@ -30,7 +30,7 @@ class MobileBgScrapeLink(models.Model):
 
     def verify(self):
         text = get_search_page('3', self.slink, 1)
-        bs = BeautifulSoup(text, 'html.parser')
+        bs = BeautifulSoup(text, 'html5lib')
         cell = bs.find(text='Резултат от Вашето търсене на:')
         search_text = cell.parent.parent.text
         search_text = search_text.replace('Особености: ', '')
@@ -331,7 +331,7 @@ class MobileBgAdUpdate(models.Model):
             self.power_hp = prev.power_hp
             return
 
-        bs = BeautifulSoup(self.html, 'html.parser')
+        bs = BeautifulSoup(self.html, 'html5lib')
         if len(bs.find_all(style='font-size:18px; font-weight:bold; color:#FF0000')):
             self.active = False
             return
