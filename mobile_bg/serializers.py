@@ -19,6 +19,6 @@ class MobileBgAdUpdateSerializer(serializers.Serializer):
 
 
 class MobileBgAdSerializer(serializers.Serializer):
-    adv = serializers.IntegerField()
+    adv = serializers.CharField()
     active = serializers.BooleanField()
     updates = MobileBgAdUpdateSerializer(many=True)
