@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+from datetime import timedelta
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import pytz
@@ -133,3 +134,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 REQUEST_DELAY = 0
 REQUEST_RETRY_TIMEOUT = 3
+BATCH_UPDATE_SIZE = 100
+SLINK_UPDATE_FREQUENCY = timedelta(hours=12)
+PARTIAL_UPDATE_FREQUENCY = timedelta(hours=16)
+FULL_UPDATE_FREQUENCY = timedelta(hours=96)

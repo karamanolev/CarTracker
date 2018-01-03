@@ -1,6 +1,5 @@
-from datetime import timedelta
-
 from bs4 import BeautifulSoup
+from django.conf import settings
 from django.db import transaction
 from django.db.models.query_utils import Q
 from django.utils import timezone
@@ -56,9 +55,9 @@ def _update_ads_by_id(ids):
 
 
 def scrape():
-    slink_threshold = timezone.now() - timedelta(hours=12)
-    partial_threshold = timezone.now() - timedelta(hours=16)
-    full_threshold = timezone.now() - timedelta(hours=72)
+    slink_threshold = timezone.now() - settings.SLINK_UPDATE_FREQUENCY
+    partial_threshold = timezone.now() - settings.PARTIAL_UPDATE_FREQUENCY
+    full_threshold = timezone.now() - settings.FULL_UPDATE_FREQUENCY
 
     scrape_links = MobileBgScrapeLink.objects.filter(
         Q(last_update_date__lte=slink_threshold) | Q(last_update_date=None),
@@ -71,7 +70,7 @@ def scrape():
         Q(last_update=None) |
         Q(last_update__date__lte=partial_threshold, active=True) |
         Q(last_full_update__date__lte=full_threshold, active=True),
-    ).values_list('id', flat=True)[:100])
+    ).values_list('id', flat=True)[:settings.BATCH_UPDATE_SIZE])
     _update_ads_by_id(ad_ids)
 
 
