@@ -20,7 +20,7 @@ def json_serialize(obj):
 
 
 def requests_get_retry(url, params=None):
-    retries_left = 5
+    retries_left = settings.REQUEST_RETRY_COUNT
     while True:
         try:
             resp = requests.get(
@@ -33,6 +33,8 @@ def requests_get_retry(url, params=None):
                 timeout=30,
             )
             resp.raise_for_status()
+            if retries_left != settings.REQUEST_RETRY_COUNT:
+                print('Retrying succeeded...')
             return resp
         except (ConnectionError, RequestException) as ex:
             response = getattr(ex, 'response')
