@@ -269,6 +269,15 @@ class MobileBgAdUpdate(models.Model):
         (ENGINE_ELECTRIC, 'Electric'),
     )
 
+    TRANSMISSION_MANUAL = 0
+    TRANSMISSION_AUTOMATIC = 1
+    TRANSMISSION_SEMIAUTOMATIC = 2
+    TRANSMISSION_CHOICES = (
+        (TRANSMISSION_MANUAL, 'Manual'),
+        (TRANSMISSION_AUTOMATIC, 'Automatic'),
+        (TRANSMISSION_SEMIAUTOMATIC, 'Semiautomatic'),
+    )
+
     PRICE_BY_NEGOTIATION = -1
 
     date = models.DateTimeField(default=timezone.now, db_index=True)
@@ -289,6 +298,7 @@ class MobileBgAdUpdate(models.Model):
     engine_type = models.IntegerField(null=True, blank=True, choices=ENGINE_CHOICES)
     mileage_km = models.IntegerField(null=True, blank=True)
     power_hp = models.IntegerField(null=True, blank=True)
+    transmission_type = models.IntegerField(null=True, blank=True, choices=TRANSMISSION_CHOICES)
 
     @property
     def date_tz(self):
@@ -311,7 +321,23 @@ class MobileBgAdUpdate(models.Model):
         self.html_raw = value
 
     def try_compress(self):
-        if self.html_raw and self.prev_update:
+        # Already no data, same HTML as previous
+        if self.html_raw is None and self.html_delta is None:
+            return
+
+        # Check if HTML is the same and we can remove all the data
+        if self.prev_update and self.html == self.prev_update.html:
+            self.html_raw = None
+            self.html_delta = None
+            return
+
+        # Already delta-compressed
+        if self.html_delta:
+            return
+
+        # If there's a prev_update, we can delta-compress
+        assert self.html_raw
+        if self.prev_update:
             self.html_delta = bsdiff4.diff(
                 self.prev_update.html.encode(),
                 self.html_raw.encode(),
