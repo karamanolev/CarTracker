@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import socket
 from datetime import timedelta
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -25,7 +26,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'm2!2hszy0-+dbf7vdq&!$!sfx14z=$1%3yv699y8!))@$_-=($'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = socket.gethostname() != 'karamanolev'
 
 ALLOWED_HOSTS = ['*']
 
@@ -132,11 +133,10 @@ STATICFILES_DIRS = [
 ]
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-REQUEST_DELAY = 0
+REQUEST_DELAY = 0.2
 REQUEST_RETRY_TIMEOUT = 3
 REQUEST_RETRY_COUNT = 5
-BATCH_UPDATE_SIZE = 100
+BATCH_UPDATE_SIZE = 50
 SLINK_UPDATE_FREQUENCY = timedelta(hours=12)
 PARTIAL_UPDATE_FREQUENCY = timedelta(hours=16)
-# FULL_UPDATE_FREQUENCY = timedelta(hours=96)
-FULL_UPDATE_FREQUENCY = timedelta(hours=144)
+FULL_UPDATE_FREQUENCY = timedelta(hours=96)

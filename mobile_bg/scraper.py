@@ -61,7 +61,7 @@ def scrape():
 
     scrape_links = MobileBgScrapeLink.objects.filter(
         Q(last_update_date__lte=slink_threshold) | Q(last_update_date=None),
-    )
+    ).order_by('last_update_date')
     for scrape_link in scrape_links:
         print('Updating slink {}: {}'.format(scrape_link.slink, scrape_link.name))
         _update_ads_list(scrape_link)
