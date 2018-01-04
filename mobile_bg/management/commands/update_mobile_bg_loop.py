@@ -14,4 +14,4 @@ class Command(BaseCommand):
                 print_ads_stats()
             except Exception:
                 traceback.print_exc()
-            sleep(2)
+            sleep(5)

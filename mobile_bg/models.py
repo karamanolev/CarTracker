@@ -1,3 +1,4 @@
+import hashlib
 import json
 import re
 from datetime import date
@@ -287,8 +288,9 @@ class MobileBgAdUpdate(models.Model):
                                        null=True, related_name='next_update')
     active = models.BooleanField(default=True, db_index=True)
 
-    html_raw = models.TextField(null=True)
-    html_delta = models.BinaryField(null=True)
+    html_raw = models.TextField(null=True, blank=True)
+    html_delta = models.BinaryField(null=True, blank=True)
+    html_checksum = models.CharField(max_length=32, null=True, blank=True)
 
     model_name = models.CharField(max_length=128)
     model_mod = models.CharField(max_length=128)
@@ -307,23 +309,36 @@ class MobileBgAdUpdate(models.Model):
     @property
     def html(self):
         if self.html_delta:
-            return bsdiff4.patch(
+            result = bsdiff4.patch(
                 self.prev_update.html.encode(),
                 self.html_delta,
             ).decode()
         elif self.html_raw:
-            return self.html_raw
+            result = self.html_raw
         else:
-            return self.prev_update.html
+            result = self.prev_update.html
+
+        result_checksum = hashlib.md5((result or '').encode()).hexdigest()
+        if result_checksum != self.html_checksum:
+            pass
+            # raise Exception('Update {} HTML failed verification. Expected {}, got {}.'.format(
+            #     self.id, self.html_checksum, result_checksum))
+
+        return result
 
     @html.setter
     def html(self, value):
         self.html_raw = value
+        self.html_checksum = hashlib.md5((self.html_raw or '').encode()).hexdigest()
 
     def try_compress(self):
         # Already no data, same HTML as previous
         if self.html_raw is None and self.html_delta is None:
             return
+
+        # Temporary code to backfill the checksums
+        if not self.html_checksum:
+            self.html_checksum = hashlib.md5((self.html or '').encode()).hexdigest()
 
         # Check if HTML is the same and we can remove all the data
         if self.prev_update and self.html == self.prev_update.html:
