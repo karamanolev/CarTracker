@@ -290,7 +290,7 @@ class MobileBgAdUpdate(models.Model):
 
     html_raw = models.TextField(null=True, blank=True)
     html_delta = models.BinaryField(null=True, blank=True)
-    html_checksum = models.CharField(max_length=32, null=True, blank=True)
+    html_checksum = models.CharField(max_length=32)
 
     model_name = models.CharField(max_length=128)
     model_mod = models.CharField(max_length=128)
@@ -320,9 +320,8 @@ class MobileBgAdUpdate(models.Model):
 
         result_checksum = hashlib.md5((result or '').encode()).hexdigest()
         if result_checksum != self.html_checksum:
-            pass
-            # raise Exception('Update {} HTML failed verification. Expected {}, got {}.'.format(
-            #     self.id, self.html_checksum, result_checksum))
+            raise Exception('Update {} HTML failed verification. Expected {}, got {}.'.format(
+                self.id, self.html_checksum, result_checksum))
 
         return result
 
@@ -335,10 +334,6 @@ class MobileBgAdUpdate(models.Model):
         # Already no data, same HTML as previous
         if self.html_raw is None and self.html_delta is None:
             return
-
-        # Temporary code to backfill the checksums
-        if not self.html_checksum:
-            self.html_checksum = hashlib.md5((self.html or '').encode()).hexdigest()
 
         # Check if HTML is the same and we can remove all the data
         if self.prev_update and self.html == self.prev_update.html:
