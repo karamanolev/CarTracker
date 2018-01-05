@@ -435,7 +435,10 @@ class MobileBgAdUpdate(ColorMixin, models.Model):
     @html.setter
     def html(self, value):
         self.html_raw = value
-        self.html_checksum = hashlib.md5((self.html_raw or '').encode()).hexdigest()
+        if self.html_raw:
+            self.html_checksum = hashlib.md5(self.html_raw.encode()).hexdigest()
+        else:
+            self.html_checksum = self.prev_update.html_checksum
 
     def try_compress(self):
         # Already no data, same HTML as previous
@@ -553,11 +556,11 @@ class MobileBgAdUpdate(ColorMixin, models.Model):
             ad=ad,
             type=cls.TYPE_PRICE_ONLY,
             prev_update=prev_update,
-            html=None,
             active=True,
             price=price,
             price_currency=price_currency,
         )
+        update.html = None
         update.update_from_html()
         update.try_compress()
         update.save()
