@@ -18,7 +18,111 @@ from mobile_bg.api import get_search_page
 from mobile_bg.utils import parse_mobile_bg_price
 
 
-class MobileBgScrapeLink(models.Model):
+class ColorMixin(models.Model):
+    COLORS = [
+        'Tъмно син',
+        'Банан',
+        'Беата',
+        'Бежов',
+        'Бордо',
+        'Бронз',
+        'Бял',
+        'Винен',
+        'Виолетов',
+        'Вишнев',
+        'Графит',
+        'Жълт',
+        'Зелен',
+        'Златист',
+        'Кафяв',
+        'Керемиден',
+        'Кремав',
+        'Лилав',
+        'Металик',
+        'Оранжев',
+        'Охра',
+        'Пепеляв',
+        'Перла',
+        'Пясъчен',
+        'Резидав',
+        'Розов',
+        'Сахара',
+        'Светло сив',
+        'Светло син',
+        'Сив',
+        'Син',
+        'Слонова кост',
+        'Сребърен',
+        'Т.зелен',
+        'Тъмно сив',
+        'Тъмно син мет.',
+        'Тъмно червен',
+        'Тютюн',
+        'Хамелеон',
+        'Червен',
+        'Черен'
+    ]
+
+    color = models.IntegerField(null=True, blank=True)
+
+    @classmethod
+    def color_to_code(cls, color_name):
+        return cls.COLORS.index(color_name)
+
+    @classmethod
+    def code_to_color(cls, color_code):
+        return cls.COLORS[color_code]
+
+    class Meta:
+        abstract = True
+
+
+class VehicleTypeMixin(models.Model):
+    VEHICLE_TYPE_CAR = 1
+    VEHICLE_TYPE_SUV = 2
+    VEHICLE_TYPE_VAN = 3
+    VEHICLE_TYPE_TRUCK = 4
+    VEHICLE_TYPE_MOTORCYCLE = 5
+    VEHICLE_TYPE_AGRICULTURAL = 6
+    VEHICLE_TYPE_INDUSTRIAL = 7
+    VEHICLE_TYPE_MOTORCAR = 8
+    VEHICLE_TYPE_CARAVAN = 9
+    VEHICLE_TYPE_BOAT = ord('a')
+    VEHICLE_TYPE_TRAILER = ord('b')
+    VEHICLE_TYPE_BIKE = ord('c')
+    VEHICLE_TYPE_PARTS = ord('u')
+    VEHICLE_TYPE_ACCESSORIES = ord('v')
+    VEHICLE_TYPE_TYRES_AND_RIMS = ord('w')
+    VEHICLE_TYPE_BUYING = ord('y')
+    VEHICLE_TYPE_SERVICES = ord('z')
+
+    VEHICLE_TYPE_CHOICES = (
+        (VEHICLE_TYPE_CAR, 'Кола'),
+        (VEHICLE_TYPE_SUV, 'Джип'),
+        (VEHICLE_TYPE_VAN, 'Бус'),
+        (VEHICLE_TYPE_TRUCK, 'Камион'),
+        (VEHICLE_TYPE_MOTORCYCLE, 'Мотоциклет'),
+        (VEHICLE_TYPE_AGRICULTURAL, 'Селскостопански'),
+        (VEHICLE_TYPE_INDUSTRIAL, 'Индустриален'),
+        (VEHICLE_TYPE_MOTORCAR, 'Кар'),
+        (VEHICLE_TYPE_CARAVAN, 'Каравана'),
+    )
+
+    VEHICLE_TYPE_BY_MOBILE_BG_NAME = {
+        'Автомобили': VEHICLE_TYPE_CAR,
+        'Джипове': VEHICLE_TYPE_SUV,
+        'Бусове': VEHICLE_TYPE_VAN,
+        'Камиони': VEHICLE_TYPE_TRUCK,
+        'Мотоциклети': VEHICLE_TYPE_MOTORCYCLE,
+    }
+
+    vehicle_type = models.IntegerField(choices=VEHICLE_TYPE_CHOICES)
+
+    class Meta:
+        abstract = True
+
+
+class MobileBgScrapeLink(VehicleTypeMixin, models.Model):
     slink = models.CharField(max_length=16)
     name = models.CharField(max_length=64)
     min_price = models.IntegerField(null=True, blank=True)
@@ -58,7 +162,7 @@ class MobileBgScrapeLink(models.Model):
                 self.slink, search_text, expected_text))
 
 
-class MobileBgAd(models.Model):
+class MobileBgAd(VehicleTypeMixin, models.Model):
     topmenu = models.IntegerField()
     adv = models.BigIntegerField(unique=True)
 
@@ -116,11 +220,13 @@ class MobileBgAd(models.Model):
         resp = requests_get_retry(self.url)
         sleep(settings.REQUEST_DELAY)
         text = resp.content.decode('windows-1251')
-        MobileBgAdUpdate.from_html(self, text)
+        up = MobileBgAdUpdate.from_html(self, text)
 
         self.update_computed_fields()
         self.save()
-        # self.download_images()
+
+        if up.active:
+            self.download_images()
 
     def update_partial(self, el):
         raw_price = el.parent.next_sibling.next_sibling.text
@@ -188,7 +294,7 @@ class MobileBgAd(models.Model):
             image.save()
 
     @classmethod
-    def from_url(cls, url):
+    def from_url(cls, vehicle_type, url):
         parsed = urlparse(url)
         qs = parse_qs(parsed.query)
         adv = qs['adv'][0]
@@ -198,6 +304,7 @@ class MobileBgAd(models.Model):
             return cls.objects.create(
                 topmenu=qs['topmenu'][0],
                 adv=adv,
+                vehicle_type=vehicle_type,
             )
 
     @classmethod
@@ -242,7 +349,7 @@ class MobileBgAdImage(models.Model):
         unique_together = (('ad', 'index'),)
 
 
-class MobileBgAdUpdate(models.Model):
+class MobileBgAdUpdate(ColorMixin, models.Model):
     TYPE_FULL = 0
     TYPE_PRICE_ONLY = 1
     TYPE_CHOICES = (
@@ -426,6 +533,18 @@ class MobileBgAdUpdate(models.Model):
             power_parts = power_row.split()
             self.power_hp = int(power_parts[0])
             assert power_parts[1] == 'к.с.'
+
+        transmission_type_row = _get_info_row('Скоростна кутия')
+        if transmission_type_row:
+            self.transmission_type = {
+                'Ръчна': self.TRANSMISSION_MANUAL,
+                'Автоматична': self.TRANSMISSION_AUTOMATIC,
+                'Полуавтоматична': self.TRANSMISSION_SEMIAUTOMATIC,
+            }[transmission_type_row]
+
+        color_row = _get_info_row('Цвят')
+        if color_row:
+            self.color = self.color_to_code(color_row)
 
     @classmethod
     def from_price_partial(cls, ad, price, price_currency):

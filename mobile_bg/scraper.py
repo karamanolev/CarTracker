@@ -23,7 +23,7 @@ def _update_ads_list(scrape_link):
                 break
             for el in els:
                 link = el['href']
-                ad = MobileBgAd.from_url(link)
+                ad = MobileBgAd.from_url(scrape_link.vehicle_type, link)
                 if not ad.active:
                     ad.active = True
                     ad.save()
