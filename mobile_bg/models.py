@@ -118,6 +118,13 @@ class VehicleTypeMixin(models.Model):
 
     vehicle_type = models.IntegerField(choices=VEHICLE_TYPE_CHOICES)
 
+    @classmethod
+    def get_mobile_bg_name_by_vehicle_type(cls, vehicle_type):
+        for k, v in cls.VEHICLE_TYPE_BY_MOBILE_BG_NAME.items():
+            if v == vehicle_type:
+                return k
+        raise Exception('Vehicle type not found')
+
     class Meta:
         abstract = True
 
@@ -130,8 +137,13 @@ class MobileBgScrapeLink(VehicleTypeMixin, models.Model):
     last_update_date = models.DateTimeField(null=True, blank=True)
     ad_count = models.IntegerField(null=True, blank=True)
 
-    class Meta:
-        ordering = ('name', 'max_price')
+    def __str__(self):
+        return '{} {} priced ({}, {}) '.format(
+            self.get_vehicle_type_display(),
+            self.name,
+            self.min_price if self.min_price else 'inf',
+            self.max_price if self.max_price else 'inf',
+        )
 
     def verify(self):
         text = get_search_page('3', self.slink, 1)
@@ -148,18 +160,23 @@ class MobileBgScrapeLink(VehicleTypeMixin, models.Model):
             expected_price = 'Цена: до {} лв., '.format(self.max_price)
         else:
             expected_price = ''
+        rubric = self.get_mobile_bg_name_by_vehicle_type(self.vehicle_type)
         expected_text = (
             'Резултат от Вашето търсене на:'
-            '\n            Рубрика: Автомобили, {}; Състояние: Употребявани, Нови, '
+            '\n            Рубрика: {}, {}; Състояние: Употребявани, Нови, '
             '{}'
             'Подредени по: Марка/Модел/Цена'
         ).format(
+            rubric,
             self.name,
             expected_price,
         )
         if search_text != expected_text:
             raise Exception('Slink {} does not verify "{}" != "{}"'.format(
                 self.slink, search_text, expected_text))
+
+    class Meta:
+        ordering = ('name', 'max_price')
 
 
 class MobileBgAd(VehicleTypeMixin, models.Model):
@@ -226,7 +243,7 @@ class MobileBgAd(VehicleTypeMixin, models.Model):
         self.save()
 
         if up.active:
-            self.download_images()
+            pass  # self.download_images()
 
     def update_partial(self, el):
         raw_price = el.parent.next_sibling.next_sibling.text

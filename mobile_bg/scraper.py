@@ -5,8 +5,9 @@ from django.db.models import F
 from django.db.models.query_utils import Q
 from django.utils import timezone
 
-from mobile_bg.api import get_search_page, get_home_page
-from mobile_bg.models import MobileBgAd, MobileBgAdUpdate, MobileBgScrapeLink
+from mobile_bg.api import get_search_page
+from mobile_bg.models import MobileBgAd, MobileBgAdUpdate, MobileBgScrapeLink, VehicleTypeMixin
+from mobile_bg.utils import get_cmm_vars
 
 
 def _update_ads_list(scrape_link):
@@ -90,20 +91,17 @@ def print_ads_stats():
     print('---------------------')
 
 
-def verify_slinks():
+def _verify_slinks(cmm_data, vehicle_type):
     print('Verifying makes')
-    resp = get_home_page()
-    bs = BeautifulSoup(resp, 'html5lib')
-    brands = {i.text.strip() for i in bs.find(attrs={'name': 'marka'}).find_all(name='option')
-              if i.text != 'всички\n'}
-    scrape_links = list(MobileBgScrapeLink.objects.all())
+    brands = {i['name'] for i in cmm_data['brands'][vehicle_type]}
+    scrape_links = list(MobileBgScrapeLink.objects.filter(vehicle_type=vehicle_type))
     scrape_brands = {i.name for i in scrape_links}
     missing_brands = brands - scrape_brands
     extra_brands = brands - scrape_brands
     if missing_brands:
-        raise Exception('Brands {} is missing a link!'.format(', '.join(sorted(missing_brands))))
+        raise Exception('Brand {} is missing a link!'.format(', '.join(sorted(missing_brands))))
     if extra_brands:
-        raise Exception('Brands {} is no longer found!'.format(', '.join(sorted(missing_brands))))
+        raise Exception('Brand {} is no longer found!'.format(', '.join(sorted(missing_brands))))
 
     print('Verifying ranges')
     for brand in brands:
@@ -119,5 +117,11 @@ def verify_slinks():
                 raise Exception('Invalid min_price for {} on {}'.format(brand, i))
 
     for scrape_link in scrape_links:
-        print('Verifying {}'.format(scrape_link.slink))
+        print('Verifying {}'.format(scrape_link))
         scrape_link.verify()
+
+
+def verify_slinks():
+    cmm_data = get_cmm_vars()
+    _verify_slinks(cmm_data, VehicleTypeMixin.VEHICLE_TYPE_CAR)
+    _verify_slinks(cmm_data, VehicleTypeMixin.VEHICLE_TYPE_SUV)
