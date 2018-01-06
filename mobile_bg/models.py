@@ -195,12 +195,13 @@ class MobileBgAd(VehicleTypeMixin, models.Model):
                 big_url=big_url,
             )
             images.append(ad_image)
-        pool = dummy.Pool(5)
 
-        pool.map(lambda i: i.download(), images)
-        pool.close()
-        for image in images:
-            image.save()
+        if images:
+            pool = dummy.Pool(5)
+            pool.map(lambda i: i.download(), images)
+            pool.close()
+            for image in images:
+                image.save()
 
     @classmethod
     def from_url(cls, vehicle_type, url):
