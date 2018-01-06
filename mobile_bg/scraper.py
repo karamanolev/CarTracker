@@ -125,3 +125,4 @@ def verify_slinks():
     cmm_data = get_cmm_vars()
     _verify_slinks(cmm_data, VehicleTypeMixin.VEHICLE_TYPE_CAR)
     _verify_slinks(cmm_data, VehicleTypeMixin.VEHICLE_TYPE_SUV)
+    print('Verification success!')
