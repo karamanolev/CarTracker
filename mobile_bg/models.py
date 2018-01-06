@@ -1,7 +1,6 @@
 import hashlib
 import json
 import re
-from datetime import date
 from multiprocessing import dummy
 from time import sleep
 from urllib.parse import urlparse, parse_qs, urlencode
@@ -15,118 +14,11 @@ from django.utils import timezone
 
 from CarTracker.utils import requests_get_retry, HttpNotFoundException
 from mobile_bg.api import get_search_page
-from mobile_bg.utils import parse_mobile_bg_price
-
-
-class ColorMixin(models.Model):
-    COLORS = [
-        'Tъмно син',
-        'Банан',
-        'Беата',
-        'Бежов',
-        'Бордо',
-        'Бронз',
-        'Бял',
-        'Винен',
-        'Виолетов',
-        'Вишнев',
-        'Графит',
-        'Жълт',
-        'Зелен',
-        'Златист',
-        'Кафяв',
-        'Керемиден',
-        'Кремав',
-        'Лилав',
-        'Металик',
-        'Оранжев',
-        'Охра',
-        'Пепеляв',
-        'Перла',
-        'Пясъчен',
-        'Резидав',
-        'Розов',
-        'Сахара',
-        'Светло сив',
-        'Светло син',
-        'Сив',
-        'Син',
-        'Слонова кост',
-        'Сребърен',
-        'Т.зелен',
-        'Тъмно сив',
-        'Тъмно син мет.',
-        'Тъмно червен',
-        'Тютюн',
-        'Хамелеон',
-        'Червен',
-        'Черен'
-    ]
-
-    color = models.IntegerField(null=True, blank=True)
-
-    @classmethod
-    def color_to_code(cls, color_name):
-        return cls.COLORS.index(color_name)
-
-    @classmethod
-    def code_to_color(cls, color_code):
-        return cls.COLORS[color_code]
-
-    class Meta:
-        abstract = True
-
-
-class VehicleTypeMixin(models.Model):
-    VEHICLE_TYPE_CAR = 1
-    VEHICLE_TYPE_SUV = 2
-    VEHICLE_TYPE_VAN = 3
-    VEHICLE_TYPE_TRUCK = 4
-    VEHICLE_TYPE_MOTORCYCLE = 5
-    VEHICLE_TYPE_AGRICULTURAL = 6
-    VEHICLE_TYPE_INDUSTRIAL = 7
-    VEHICLE_TYPE_MOTORCAR = 8
-    VEHICLE_TYPE_CARAVAN = 9
-    VEHICLE_TYPE_BOAT = ord('a')
-    VEHICLE_TYPE_TRAILER = ord('b')
-    VEHICLE_TYPE_BIKE = ord('c')
-    VEHICLE_TYPE_PARTS = ord('u')
-    VEHICLE_TYPE_ACCESSORIES = ord('v')
-    VEHICLE_TYPE_TYRES_AND_RIMS = ord('w')
-    VEHICLE_TYPE_BUYING = ord('y')
-    VEHICLE_TYPE_SERVICES = ord('z')
-
-    VEHICLE_TYPE_CHOICES = (
-        (VEHICLE_TYPE_CAR, 'Кола'),
-        (VEHICLE_TYPE_SUV, 'Джип'),
-        (VEHICLE_TYPE_VAN, 'Бус'),
-        (VEHICLE_TYPE_TRUCK, 'Камион'),
-        (VEHICLE_TYPE_MOTORCYCLE, 'Мотоциклет'),
-        (VEHICLE_TYPE_AGRICULTURAL, 'Селскостопански'),
-        (VEHICLE_TYPE_INDUSTRIAL, 'Индустриален'),
-        (VEHICLE_TYPE_MOTORCAR, 'Кар'),
-        (VEHICLE_TYPE_CARAVAN, 'Каравана'),
-    )
-
-    VEHICLE_TYPE_BY_MOBILE_BG_NAME = {
-        'Автомобили': VEHICLE_TYPE_CAR,
-        'Джипове': VEHICLE_TYPE_SUV,
-        'Бусове': VEHICLE_TYPE_VAN,
-        'Камиони': VEHICLE_TYPE_TRUCK,
-        'Мотоциклети': VEHICLE_TYPE_MOTORCYCLE,
-    }
-
-    vehicle_type = models.IntegerField(choices=VEHICLE_TYPE_CHOICES)
-
-    @classmethod
-    def get_mobile_bg_name_by_vehicle_type(cls, vehicle_type):
-        for k, v in cls.VEHICLE_TYPE_BY_MOBILE_BG_NAME.items():
-            if v == vehicle_type:
-                return k
-        raise Exception('Vehicle type not found')
-
-    class Meta:
-        abstract = True
+from mobile_bg.models_mixins import VehicleTypeMixin, BodyStyleMixin, ColorMixin, EngineTypeMixin, \
+    TransmissionTypeMixin, PriceMixin
+from mobile_bg.utils import parse_price, parse_ad_location, parse_ad_model_name_mod, \
+    parse_ad_registration_date, parse_ad_engine_type, parse_ad_mileage_km, parse_ad_power_hp, \
+    parse_ad_transmission_type, get_info_row, parse_ad_seller_name
 
 
 class MobileBgScrapeLink(VehicleTypeMixin, models.Model):
@@ -176,7 +68,7 @@ class MobileBgScrapeLink(VehicleTypeMixin, models.Model):
                 self.slink, search_text, expected_text))
 
     class Meta:
-        ordering = ('name', 'max_price')
+        ordering = ('vehicle_type', 'name', 'max_price')
 
 
 class MobileBgAd(VehicleTypeMixin, models.Model):
@@ -250,7 +142,7 @@ class MobileBgAd(VehicleTypeMixin, models.Model):
         if raw_price.strip() == 'Договаряне':
             price, price_currency = MobileBgAdUpdate.PRICE_BY_NEGOTIATION, None
         else:
-            price, price_currency = parse_mobile_bg_price(raw_price)
+            price, price_currency = parse_price(raw_price)
         MobileBgAdUpdate.from_price_partial(self, price, price_currency)
 
         self.update_computed_fields()
@@ -366,41 +258,19 @@ class MobileBgAdImage(models.Model):
         unique_together = (('ad', 'index'),)
 
 
-class MobileBgAdUpdate(ColorMixin, models.Model):
+class MobileBgAdUpdate(
+    ColorMixin,
+    BodyStyleMixin,
+    EngineTypeMixin,
+    TransmissionTypeMixin,
+    PriceMixin,
+    models.Model,
+):
     TYPE_FULL = 0
     TYPE_PRICE_ONLY = 1
     TYPE_CHOICES = (
         (TYPE_FULL, 'Full'),
         (TYPE_PRICE_ONLY, 'Price Only'),
-    )
-
-    CURRENCY_BGN = 0
-    CURRENCY_EUR = 1
-    CURRENCY_USD = 2
-    CURRENCY_CHOICES = (
-        (CURRENCY_BGN, 'BGN'),
-        (CURRENCY_EUR, 'EUR'),
-        (CURRENCY_USD, 'USD'),
-    )
-
-    ENGINE_PETROL = 0
-    ENGINE_DIESEL = 1
-    ENGINE_HYBRID = 2
-    ENGINE_ELECTRIC = 3
-    ENGINE_CHOICES = (
-        (ENGINE_PETROL, 'Petrol'),
-        (ENGINE_DIESEL, 'Diesel'),
-        (ENGINE_HYBRID, 'Hybrid'),
-        (ENGINE_ELECTRIC, 'Electric'),
-    )
-
-    TRANSMISSION_MANUAL = 0
-    TRANSMISSION_AUTOMATIC = 1
-    TRANSMISSION_SEMIAUTOMATIC = 2
-    TRANSMISSION_CHOICES = (
-        (TRANSMISSION_MANUAL, 'Manual'),
-        (TRANSMISSION_AUTOMATIC, 'Automatic'),
-        (TRANSMISSION_SEMIAUTOMATIC, 'Semiautomatic'),
     )
 
     PRICE_BY_NEGOTIATION = -1
@@ -417,14 +287,13 @@ class MobileBgAdUpdate(ColorMixin, models.Model):
     html_checksum = models.CharField(max_length=32)
 
     model_name = models.CharField(max_length=128)
-    model_mod = models.CharField(max_length=128)
-    price = models.IntegerField(null=True, blank=True)
-    price_currency = models.IntegerField(null=True, blank=True, choices=CURRENCY_CHOICES)
+    model_mod = models.CharField(max_length=128, null=True, blank=True)
     registration_date = models.DateField(null=True, blank=True)
-    engine_type = models.IntegerField(null=True, blank=True, choices=ENGINE_CHOICES)
     mileage_km = models.IntegerField(null=True, blank=True)
     power_hp = models.IntegerField(null=True, blank=True)
-    transmission_type = models.IntegerField(null=True, blank=True, choices=TRANSMISSION_CHOICES)
+    location_region = models.CharField(max_length=128, null=True, blank=True)
+    location_city = models.CharField(max_length=128, null=True, blank=True)
+    seller_name = models.CharField(max_length=128, null=True, blank=True)
 
     @property
     def date_tz(self):
@@ -508,63 +377,24 @@ class MobileBgAdUpdate(ColorMixin, models.Model):
             self.price, self.price_currency = self.PRICE_BY_NEGOTIATION, None
         else:
             raw_price = bs.find(style='font-size:15px; font-weight:bold;').text
-            self.price, self.price_currency = parse_mobile_bg_price(raw_price)
+            self.price, self.price_currency = parse_price(raw_price)
 
-        raw_name = bs.find(style='font-size:18px; font-weight:bold;')
-        raw_name_children = list(raw_name.children)
-        if len(raw_name_children) >= 1:
-            self.model_name = str(raw_name_children[0]).strip()
-        if len(raw_name_children) >= 2:
-            self.model_mod = raw_name_children[1].text.strip()
+        self.model_name, self.model_mod = parse_ad_model_name_mod(bs)
+        self.location_region, self.location_city = parse_ad_location(bs)
+        self.registration_date = parse_ad_registration_date(bs)
+        self.engine_type = parse_ad_engine_type(bs)
+        self.mileage_km = parse_ad_mileage_km(bs)
+        self.power_hp = parse_ad_power_hp(bs)
+        self.transmission_type = parse_ad_transmission_type(bs)
+        self.seller_name = parse_ad_seller_name(bs)
 
-        def _get_info_row(title):
-            title_el = bs.find(text=title)
-            if title_el is None:
-                return None
-            return title_el.parent.next_sibling.text
-
-        reg_date_row = _get_info_row('Дата на производство')
-        if reg_date_row:
-            reg_date_parts = reg_date_row.split()
-            month = ['януари', 'февруари', 'март', 'април', 'май', 'юни', 'юли', 'август',
-                     'септември', 'октомври', 'ноември', 'декември'].index(reg_date_parts[0]) + 1
-            year = int(reg_date_parts[1])
-            assert len(reg_date_parts) == 3
-            assert reg_date_parts[2] == 'г.'
-            self.registration_date = date(year, month, 1)
-
-        engine_type_row = _get_info_row('Тип двигател')
-        if engine_type_row:
-            self.engine_type = {
-                'Бензинов': self.ENGINE_PETROL,
-                'Дизелов': self.ENGINE_DIESEL,
-                'Хибриден': self.ENGINE_HYBRID,
-                'Електрически': self.ENGINE_ELECTRIC,
-            }[engine_type_row]
-
-        mileage_row = _get_info_row('Пробег')
-        if mileage_row:
-            mileage_parts = mileage_row.split()
-            self.mileage_km = int(mileage_parts[0])
-            assert mileage_parts[1] == 'км'
-
-        power_row = _get_info_row('Мощност')
-        if power_row:
-            power_parts = power_row.split()
-            self.power_hp = int(power_parts[0])
-            assert power_parts[1] == 'к.с.'
-
-        transmission_type_row = _get_info_row('Скоростна кутия')
-        if transmission_type_row:
-            self.transmission_type = {
-                'Ръчна': self.TRANSMISSION_MANUAL,
-                'Автоматична': self.TRANSMISSION_AUTOMATIC,
-                'Полуавтоматична': self.TRANSMISSION_SEMIAUTOMATIC,
-            }[transmission_type_row]
-
-        color_row = _get_info_row('Цвят')
+        color_row = get_info_row(bs, 'Цвят')
         if color_row:
             self.color = self.color_to_code(color_row)
+
+        body_style_row = get_info_row(bs, 'Тип')
+        if body_style_row:
+            self.body_style = self.get_body_style_by_mobile_bg_name(body_style_row)
 
     @classmethod
     def from_price_partial(cls, ad, price, price_currency):
