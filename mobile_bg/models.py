@@ -177,15 +177,12 @@ class MobileBgAd(VehicleTypeMixin, models.Model):
         urls_list = ['https:' + i for i in json.loads('[{}]'.format(urls))]
         urls_list.sort()
         images = []
+        current_indices = set(self.images.values_list('index', flat=True))
         for big_url in urls_list:
             index = int(re.search(r'_(\d+)\.pic$', big_url).group(1))
-
-            try:
-                self.images.get(index=index)
+            if index in current_indices:
                 print('Image {} already downloaded'.format(big_url))
                 continue
-            except MobileBgAdImage.DoesNotExist:
-                pass
 
             small_url = big_url.replace('/big/', '/small/')
             ad_image = MobileBgAdImage(
