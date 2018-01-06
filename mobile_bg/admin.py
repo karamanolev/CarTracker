@@ -14,7 +14,7 @@ class MobileBgScrapeLinkAdmin(admin.ModelAdmin):
         'ad_count',
         'last_updated'
     )
-    list_per_page = 200
+    list_per_page = 500
     list_filter = ('vehicle_type',)
 
     def last_updated(self, obj):
