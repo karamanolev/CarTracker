@@ -44,7 +44,10 @@ def _update_ad(ad):
         last_update = None
         if ad.last_full_update:
             last_update = ad.last_full_update.date
-        print('Updating {} (last full update {})'.format(ad.adv, last_update))
+        print('Updating {} (last full update {})'.format(
+            ad.adv,
+            last_update.astimezone(settings.TZ) if last_update else 'Never',
+        ))
         ad.update()
 
 
@@ -62,7 +65,9 @@ def scrape():
 
     scrape_links = MobileBgScrapeLink.objects.filter(
         Q(last_update_date__lte=slink_threshold) | Q(last_update_date=None),
-    ).order_by('last_update_date')
+    ).order_by(
+        F('last_update_date').asc(nulls_first=True),
+    )
     for scrape_link in scrape_links:
         print('Updating slink {}: {}'.format(scrape_link.slink, scrape_link.name))
         _update_ads_list(scrape_link)
@@ -72,7 +77,7 @@ def scrape():
         Q(last_update__date__lte=partial_threshold, active=True) |
         Q(last_full_update__date__lte=full_threshold, active=True),
     ).order_by(
-        F('last_full_update').asc(nulls_first=True),
+        F('last_full_update__date').asc(nulls_first=True),
     ).values_list('id', flat=True)[:settings.BATCH_UPDATE_SIZE])
     _update_ads_by_id(ad_ids)
 
