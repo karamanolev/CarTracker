@@ -135,7 +135,7 @@ class MobileBgAd(VehicleTypeMixin, models.Model):
         self.save()
 
         if up.active:
-            pass  # self.download_images()
+            self.download_images()
 
     def update_partial(self, el):
         raw_price = el.parent.next_sibling.next_sibling.text
