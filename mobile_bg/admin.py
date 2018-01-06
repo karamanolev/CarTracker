@@ -7,6 +7,7 @@ from mobile_bg.models import MobileBgAd, MobileBgScrapeLink, MobileBgAdUpdate
 class MobileBgScrapeLinkAdmin(admin.ModelAdmin):
     list_display = (
         'name',
+        'vehicle_type',
         'min_price',
         'max_price',
         'slink',
@@ -14,6 +15,7 @@ class MobileBgScrapeLinkAdmin(admin.ModelAdmin):
         'last_updated'
     )
     list_per_page = 200
+    list_filter = ('vehicle_type',)
 
     def last_updated(self, obj):
         return humanize.naturaltime(obj.last_update_date)

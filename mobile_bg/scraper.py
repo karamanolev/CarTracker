@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.db import transaction
+from django.db.models import F
 from django.db.models.query_utils import Q
 from django.utils import timezone
 
@@ -70,6 +71,8 @@ def scrape():
         Q(last_update=None) |
         Q(last_update__date__lte=partial_threshold, active=True) |
         Q(last_full_update__date__lte=full_threshold, active=True),
+    ).order_by(
+        F('last_full_update').asc(nulls_first=True),
     ).values_list('id', flat=True)[:settings.BATCH_UPDATE_SIZE])
     _update_ads_by_id(ad_ids)
 
