@@ -142,8 +142,8 @@ async function initAdsListInfo() {
             const stats = computeAdStats(adData);
             grid.append(createInfoCol('1', 'Добавено', moment(
                 stats.firstUpdate.date).fromNow()));
-            grid.append(createInfoCol('2', 'Мин. цена', formatPrice(stats.minPrice)));
-            grid.append(createInfoCol('3', 'Макс. цена', formatPrice(stats.maxPrice)));
+            grid.append(createInfoCol('2', 'Макс. цена', formatPrice(stats.maxPrice)));
+            grid.append(createInfoCol('3', 'Мин. цена', formatPrice(stats.minPrice)));
             const lastPriceChange = stats.lastPriceChange ? moment(
                 stats.lastPriceChange.date).fromNow() : '-';
             grid.append(createInfoCol('4', 'Последна промяна', lastPriceChange));
