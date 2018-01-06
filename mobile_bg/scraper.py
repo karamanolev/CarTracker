@@ -70,7 +70,7 @@ def scrape():
         F('last_update_date').asc(nulls_first=True),
     )
     for scrape_link in scrape_links:
-        print('Updating slink {}: {}'.format(scrape_link.slink, scrape_link.name))
+        print('Updating slink {}'.format(scrape_link))
         _update_ads_list(scrape_link)
 
     ad_ids = list(MobileBgAd.objects.filter(

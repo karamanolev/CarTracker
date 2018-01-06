@@ -30,11 +30,12 @@ class MobileBgScrapeLink(VehicleTypeMixin, models.Model):
     ad_count = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
-        return '{} {} priced ({}, {}) '.format(
+        return '{} {} priced ({}, {}) - {}'.format(
             self.get_vehicle_type_display(),
             self.name,
             self.min_price if self.min_price else 'inf',
             self.max_price if self.max_price else 'inf',
+            self.slink,
         )
 
     def verify(self):
