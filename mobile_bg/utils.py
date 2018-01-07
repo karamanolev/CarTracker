@@ -66,8 +66,10 @@ def parse_ad_location(bs):
             t = str(e).strip()
             if t.startswith('Регион:'):
                 t = t[len('Регион:'):].strip().split(',')
-                assert len(t) == 2
-                return t[0].strip(), t[1].strip()
+                assert 1 <= len(t) <= 2
+                region = t[0].strip()
+                city = None if len(t) < 2 else t[1].strip()
+                return region, city
     raise Exception('Ad location not found')
 
 
