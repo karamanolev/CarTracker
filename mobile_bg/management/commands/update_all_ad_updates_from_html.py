@@ -20,8 +20,11 @@ class Command(BaseCommand):
                     up.prev_update = updates_by_id[up.prev_update_id]
 
                 for up in updates:
-                    print('Processing update id {}'.format(up.id))
-                    up.update_from_html()
-                    up.save()
+                    try:
+                        up.update_from_html()
+                        up.save()
+                    except Exception:
+                        print('Error processing update id {}'.format(up.id))
+                        raise
 
                 print('{} / {} ({})'.format(i + 1, len(ad_ids), len(updates)))
