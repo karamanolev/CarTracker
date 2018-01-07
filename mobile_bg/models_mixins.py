@@ -122,6 +122,7 @@ class BodyStyleMixin(models.Model):
     BODY_STYLE_CAR_SEDAN = 107
     BODY_STYLE_CAR_STRETCH_LIMO = 108
     BODY_STYLE_CAR_HATCHBACK = 109
+    BODY_STYLE_CAR_HEARSE = 110
     BODY_STYLE_CAR_CHOICES = (
         (BODY_STYLE_CAR_VAN, 'Ван'),
         (BODY_STYLE_CAR_CABRIOLET, 'Кабрио'),
@@ -132,6 +133,7 @@ class BodyStyleMixin(models.Model):
         (BODY_STYLE_CAR_SEDAN, 'Седан'),
         (BODY_STYLE_CAR_STRETCH_LIMO, 'Стреч лимузина'),
         (BODY_STYLE_CAR_HATCHBACK, 'Хечбек'),
+        (BODY_STYLE_CAR_HEARSE, 'Катафалка'),
     )
 
     BODY_STYLE_SUV_SHORT_WHEEL_BASE = 201
