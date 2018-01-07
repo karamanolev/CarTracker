@@ -20,6 +20,7 @@ class Command(BaseCommand):
                     up.prev_update = updates_by_id[up.prev_update_id]
 
                 for up in updates:
+                    print('Processing update id {}'.format(up.id))
                     up.update_from_html()
                     up.save()
 
