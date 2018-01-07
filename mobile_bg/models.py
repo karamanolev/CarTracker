@@ -18,7 +18,7 @@ from mobile_bg.models_mixins import VehicleTypeMixin, BodyStyleMixin, ColorMixin
     TransmissionTypeMixin, PriceMixin
 from mobile_bg.utils import parse_price, parse_ad_location, parse_ad_model_name_mod, \
     parse_ad_registration_date, parse_ad_engine_type, parse_ad_mileage_km, parse_ad_power_hp, \
-    parse_ad_transmission_type, get_info_row, parse_ad_seller_name
+    parse_ad_transmission_type, get_info_row, parse_ad_seller_name, find_ga_prop
 
 
 class MobileBgScrapeLink(VehicleTypeMixin, models.Model):
@@ -285,8 +285,12 @@ class MobileBgAdUpdate(
     html_delta = models.BinaryField(null=True, blank=True)
     html_checksum = models.CharField(max_length=32)
 
+    make_brand = models.CharField(max_length=128, null=True, blank=True)
+    make_model = models.CharField(max_length=128, null=True, blank=True)
+
     model_name = models.CharField(max_length=128)
     model_mod = models.CharField(max_length=128, null=True, blank=True)
+
     registration_date = models.DateField(null=True, blank=True)
     mileage_km = models.IntegerField(null=True, blank=True)
     power_hp = models.IntegerField(null=True, blank=True)
@@ -357,15 +361,24 @@ class MobileBgAdUpdate(
                 if prev is None:
                     return
 
+            self.make_brand = prev.make_brand
+            self.make_model = prev.make_model
             self.model_name = prev.model_name
             self.model_mod = prev.model_mod
+            self.location_region = prev.location_region
+            self.location_city = prev.location_city
             self.registration_date = prev.registration_date
             self.engine_type = prev.engine_type
             self.mileage_km = prev.mileage_km
             self.power_hp = prev.power_hp
+            self.transmission_type = prev.transmission_type
+            self.seller_name = prev.seller_name
+            self.color = prev.color
+            self.body_style = prev.body_style
             return
 
-        bs = BeautifulSoup(self.html, 'html5lib')
+        html = self.html
+        bs = BeautifulSoup(html, 'html5lib')
         if len(bs.find_all(style='font-size:18px; font-weight:bold; color:#FF0000')):
             self.active = False
             return
@@ -378,6 +391,8 @@ class MobileBgAdUpdate(
             raw_price = bs.find(style='font-size:15px; font-weight:bold;').text
             self.price, self.price_currency = parse_price(raw_price)
 
+        self.make_brand = find_ga_prop(html, 'AdvertBrand')
+        self.make_model = find_ga_prop(html, 'AdvertModel')
         self.model_name, self.model_mod = parse_ad_model_name_mod(bs)
         self.location_region, self.location_city = parse_ad_location(bs)
         self.registration_date = parse_ad_registration_date(bs)
