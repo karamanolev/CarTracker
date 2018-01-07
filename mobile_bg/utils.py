@@ -56,7 +56,7 @@ def get_cmm_vars():
 
 
 def _get_contacts_table(bs):
-    return bs.find(text='За контакти:').parent.next_sibling.next_sibling
+    return bs.find(name='div', text='За контакти:').next_sibling.next_sibling
 
 
 def parse_ad_location(bs):
