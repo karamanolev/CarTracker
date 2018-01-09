@@ -12,16 +12,7 @@ def ad_data(request, adv):
     except MobileBgAd.DoesNotExist:
         raise Http404()
 
-    filtered = ad.get_filtered_updates()
-
-    return json_response({
-        'added': ad.first_update.date,
-        'url': ad.url,
-        'updates': [{
-            'date': i.date,
-            'price': i.price,
-        } for i in filtered],
-    })
+    return json_response(MobileBgAdSerializer(ad).data)
 
 
 def ads_data(request):

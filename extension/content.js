@@ -21,18 +21,8 @@ function formatPrice(priceWithCurrency) {
     }
 }
 
-function computeAdStats(adData) {
-    const updates = [].concat(adData.updates),
-        activeUpdates = updates.filter(u => u.active),
-        result = {
-            updates: updates,
-            firstUpdate: updates[0],
-            lastUpdate: updates[updates.length - 1],
-            lastPriceChange: null,
-            lastActiveUpdate: null,
-            minPrice: null,
-            maxPrice: null,
-        };
+function getMinMaxPrice(activeUpdates) {
+    let minPrice = null, maxPrice = null;
     for (let update of activeUpdates) {
         if (update.price === -1) {
             continue;
@@ -41,31 +31,82 @@ function computeAdStats(adData) {
             price: update.price,
             currency: update.price_currency,
         };
-        if (result.minPrice === null || update.price < result.minPrice.price) {
-            result.minPrice = p;
+        if (minPrice === null || update.price < minPrice.price) {
+            minPrice = p;
         }
-        if (result.maxPrice === null || update.price > result.maxPrice.price) {
-            result.maxPrice = p;
+        if (maxPrice === null || update.price > maxPrice.price) {
+            maxPrice = p;
         }
     }
+    return {
+        minPrice: minPrice,
+        maxPrice: maxPrice,
+    }
+}
+
+function getFilteredUpdates(activeUpdates) {
+    let filtered = [];
+    if (activeUpdates.length >= 1) {
+        filtered.push(activeUpdates[0]);
+        for (let update of activeUpdates) {
+            if (update.price !== filtered[filtered.length - 1].price) {
+                filtered.push(update);
+            }
+        }
+
+        let lastUpdate = activeUpdates[activeUpdates.length - 1];
+        let lastFiltered = filtered[filtered.length - 1];
+        if (lastUpdate.date !== lastFiltered.data) {
+            filtered.push(lastUpdate);
+        }
+    }
+    return filtered;
+}
+
+function getPriceChangeUpdates(activeUpdates) {
+    let price = null,
+        changes = [];
+    for (let update of activeUpdates) {
+        if (update.price !== price) {
+            if (price !== null) {
+                changes.push(update);
+            }
+            price = update.price;
+        }
+    }
+    return changes;
+}
+
+function computeAdStats(adData) {
+    const updates = [].concat(adData.updates),
+        activeUpdates = updates.filter(u => u.active),
+        priceChangeUpdates = getPriceChangeUpdates(activeUpdates),
+        result = {
+            updates: updates,
+            activeUpdates: activeUpdates,
+            filteredUpdates: getFilteredUpdates(activeUpdates),
+            priceChangeUpdates: priceChangeUpdates,
+
+            firstUpdate: updates[0],
+            lastUpdate: updates[updates.length - 1],
+            lastPriceChange: priceChangeUpdates.length ?
+                priceChangeUpdates[priceChangeUpdates.length - 1] : null,
+            lastActiveUpdate: null,
+
+            minPrice: null,
+            maxPrice: null,
+        };
+    Object.assign(result, getMinMaxPrice(result.activeUpdates));
     if (activeUpdates.length) {
         result.lastActiveUpdate = activeUpdates[activeUpdates.length - 1];
-    }
-    for (let i = activeUpdates.length - 1; i >= 1; --i) {
-        const u = activeUpdates[i],
-            p = activeUpdates[i - 1];
-        if (u.price !== p.price) {
-            result.lastPriceChange = u;
-            break;
-        }
     }
     return result;
 }
 
-function initChartjs(data) {
-    const prices = data.updates.map(u => u.price),
-        dates = data.updates.map(u => new Date(u.date)),
-        chart = new Chart($('canvas')[0].getContext('2d'), {
+function initChartjs($canvas, adData, adStats) {
+    const prices = adStats.filteredUpdates.map(u => u.price),
+        dates = adStats.filteredUpdates.map(u => new Date(u.date)),
+        chart = new Chart($canvas[0].getContext('2d'), {
             type: 'line',
             data: {
                 labels: dates,
@@ -110,13 +151,12 @@ async function initAdInfo(advId) {
         console.warn('Extension failed to retrieve data:', e);
         return;
     }
-    const data = await resp.json(),
-        $target = $('h1 ~ table[width="660"] > tbody > tr:nth-child(2) > td'),
-        $canvas = $('<canvas>'),
-        $priceChart = $('<div>').attr('id', 'car-tracker-price-chart').append(
-            $('<canvas>').attr('width', 344).attr('height', 180));
-    $target.prepend($priceChart);
-    initChartjs(data);
+    const adData = await resp.json(),
+        adStats = computeAdStats(adData),
+        $canvas = $('<canvas>').attr('width', 344).attr('height', 180),
+        $container = $('<div>').attr('id', 'car-tracker-price-chart').append($canvas);
+    $('h1 ~ table[width="660"] > tbody > tr:nth-child(2) > td').prepend($container);
+    initChartjs($canvas, adData, adStats);
 }
 
 async function initAdsListInfo() {
@@ -139,14 +179,15 @@ async function initAdsListInfo() {
             grid = $('<div>').addClass('ads-list-info-container'),
             adData = adsData[advFromMmm(e)];
         if (adData) {
-            const stats = computeAdStats(adData);
+            const adStats = computeAdStats(adData);
             grid.append(createInfoCol('1', 'Добавено', moment(
-                stats.firstUpdate.date).fromNow()));
-            grid.append(createInfoCol('2', 'Макс. цена', formatPrice(stats.maxPrice)));
-            grid.append(createInfoCol('3', 'Мин. цена', formatPrice(stats.minPrice)));
-            const lastPriceChange = stats.lastPriceChange ? moment(
-                stats.lastPriceChange.date).fromNow() : '-';
-            grid.append(createInfoCol('4', 'Последна промяна', lastPriceChange));
+                adStats.firstUpdate.date).fromNow()));
+            grid.append(createInfoCol('2', 'Макс. цена', formatPrice(adStats.maxPrice)));
+            grid.append(createInfoCol('3', 'Мин. цена', formatPrice(adStats.minPrice)));
+            grid.append(createInfoCol('4', 'Промени (последна)', adStats.lastPriceChange ?
+                (adStats.priceChangeUpdates.length + '(' +
+                    moment(adStats.lastPriceChange.date).fromNow()) + ')' : '-'
+            ));
 
             $trBefore.after($('<tr>').append(
                 $('<td>').attr('colspan', 5).append(grid),

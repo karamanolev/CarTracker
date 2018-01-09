@@ -150,14 +150,12 @@ class MobileBgAd(VehicleTypeMixin, models.Model):
         self.save()
 
     def get_filtered_updates(self):
-        updates = list(self.updates.order_by('date').all())
+        updates = list(self.updates.filter(active=True).order_by('date').all())
         filtered = []
-        if len(updates) > 0:
-            filtered = []
+        if len(updates) >= 1:
+            filtered.append(updates[0])
             for update in updates:
-                if not update.active:
-                    continue
-                if len(filtered) < 1 or update.price != filtered[-1].price:
+                if update.price != filtered[-1].price:
                     filtered.append(update)
 
             if updates[-1].date_tz.date() != filtered[-1].date_tz.date():

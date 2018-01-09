@@ -1,9 +1,9 @@
 import {advFromMmm, computeAdStats, formatPrice} from './utils.js';
 
-function initChartjs(data) {
-    const prices = data.updates.map(u => u.price),
-        dates = data.updates.map(u => new Date(u.date)),
-        chart = new Chart($('canvas')[0].getContext('2d'), {
+function initChartjs($canvas, adData, adStats) {
+    const prices = adStats.filteredUpdates.map(u => u.price),
+        dates = adStats.filteredUpdates.map(u => new Date(u.date)),
+        chart = new Chart($canvas[0].getContext('2d'), {
             type: 'line',
             data: {
                 labels: dates,
@@ -48,13 +48,12 @@ async function initAdInfo(advId) {
         console.warn('Extension failed to retrieve data:', e);
         return;
     }
-    const data = await resp.json(),
-        $target = $('h1 ~ table[width="660"] > tbody > tr:nth-child(2) > td'),
-        $canvas = $('<canvas>'),
-        $priceChart = $('<div>').attr('id', 'car-tracker-price-chart').append(
-            $('<canvas>').attr('width', 344).attr('height', 180));
-    $target.prepend($priceChart);
-    initChartjs(data);
+    const adData = await resp.json(),
+        adStats = computeAdStats(adData),
+        $canvas = $('<canvas>').attr('width', 344).attr('height', 180),
+        $container = $('<div>').attr('id', 'car-tracker-price-chart').append($canvas);
+    $('h1 ~ table[width="660"] > tbody > tr:nth-child(2) > td').prepend($container);
+    initChartjs($canvas, adData, adStats);
 }
 
 async function initAdsListInfo() {
@@ -77,14 +76,15 @@ async function initAdsListInfo() {
             grid = $('<div>').addClass('ads-list-info-container'),
             adData = adsData[advFromMmm(e)];
         if (adData) {
-            const stats = computeAdStats(adData);
+            const adStats = computeAdStats(adData);
             grid.append(createInfoCol('1', 'Добавено', moment(
-                stats.firstUpdate.date).fromNow()));
-            grid.append(createInfoCol('2', 'Макс. цена', formatPrice(stats.maxPrice)));
-            grid.append(createInfoCol('3', 'Мин. цена', formatPrice(stats.minPrice)));
-            const lastPriceChange = stats.lastPriceChange ? moment(
-                stats.lastPriceChange.date).fromNow() : '-';
-            grid.append(createInfoCol('4', 'Последна промяна', lastPriceChange));
+                adStats.firstUpdate.date).fromNow()));
+            grid.append(createInfoCol('2', 'Макс. цена', formatPrice(adStats.maxPrice)));
+            grid.append(createInfoCol('3', 'Мин. цена', formatPrice(adStats.minPrice)));
+            grid.append(createInfoCol('4', 'Промени (последна)', adStats.lastPriceChange ?
+                (adStats.priceChangeUpdates.length + '(' +
+                    moment(adStats.lastPriceChange.date).fromNow()) + ')' : '-'
+            ));
 
             $trBefore.after($('<tr>').append(
                 $('<td>').attr('colspan', 5).append(grid),
