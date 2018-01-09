@@ -40,6 +40,26 @@ function initChartjs($canvas, adData, adStats) {
         });
 }
 
+function getAdsInfoContainer(adStats) {
+    function createInfoCol(column, header, text) {
+        return [
+            $('<div>').css('grid-column', column).addClass('info-cell-header').text(header),
+            $('<div>').css('grid-column', column).addClass('info-cell-text').text(text),
+        ];
+    }
+
+    const grid = $('<div>').addClass('ads-list-info-container');
+    grid.append(createInfoCol('1', 'Добавено', moment(
+        adStats.firstUpdate.date).fromNow()));
+    grid.append(createInfoCol('2', 'Макс. цена', formatPrice(adStats.maxPrice)));
+    grid.append(createInfoCol('3', 'Мин. цена', formatPrice(adStats.minPrice)));
+    grid.append(createInfoCol('4', 'Промени (последна)', adStats.lastPriceChange ?
+        (adStats.priceChangeUpdates.length + ' (' +
+            moment(adStats.lastPriceChange.date).fromNow()) + ')' : '-'
+    ));
+    return grid;
+}
+
 async function initAdInfo(advId) {
     let resp;
     try {
@@ -51,7 +71,8 @@ async function initAdInfo(advId) {
     const adData = await resp.json(),
         adStats = computeAdStats(adData),
         $canvas = $('<canvas>').attr('width', 344).attr('height', 180),
-        $container = $('<div>').attr('id', 'car-tracker-price-chart').append($canvas);
+        $grid = getAdsInfoContainer(adStats),
+        $container = $('<div>').attr('id', 'car-tracker-price-chart').append($canvas, $grid);
     $('h1 ~ table[width="660"] > tbody > tr:nth-child(2) > td').prepend($container);
     initChartjs($canvas, adData, adStats);
 }
@@ -63,28 +84,13 @@ async function initAdsListInfo() {
         $.param({advs: advs.join(',')})),
         adsData = await resp.json();
 
-    function createInfoCol(column, header, text) {
-        return [
-            $('<div>').css('grid-column', column).addClass('info-cell-header').text(header),
-            $('<div>').css('grid-column', column).addClass('info-cell-text').text(text),
-        ];
-    }
-
     $('.mmm').each(function(i, e) {
         const $e = $(e),
             $trBefore = $e.closest('tr').next().next(),
-            grid = $('<div>').addClass('ads-list-info-container'),
             adData = adsData[advFromMmm(e)];
         if (adData) {
-            const adStats = computeAdStats(adData);
-            grid.append(createInfoCol('1', 'Добавено', moment(
-                adStats.firstUpdate.date).fromNow()));
-            grid.append(createInfoCol('2', 'Макс. цена', formatPrice(adStats.maxPrice)));
-            grid.append(createInfoCol('3', 'Мин. цена', formatPrice(adStats.minPrice)));
-            grid.append(createInfoCol('4', 'Промени (последна)', adStats.lastPriceChange ?
-                (adStats.priceChangeUpdates.length + '(' +
-                    moment(adStats.lastPriceChange.date).fromNow()) + ')' : '-'
-            ));
+            const adStats = computeAdStats(adData),
+                grid = getAdsInfoContainer(adStats);
 
             $trBefore.after($('<tr>').append(
                 $('<td>').attr('colspan', 5).append(grid),
