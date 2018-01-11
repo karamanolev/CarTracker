@@ -5,12 +5,28 @@
     <div class="row">
         <div class="col-md-12">
             <div class="annotate-interior-exterior-images">
+                {% if prev_images.1 %}
+                    <div style="grid-column: 1">
+                        <img src="{% url 'mobile_bg:ad_image' prev_images.1.ad.adv prev_images.1.index 'big' %}"
+                             width="200" height="150"><br>
+                        {{ prev_images.1.get_photo_object_display }}
+                    </div>
+                {% endif %}
+                {% if prev_images.0 %}
+                    <div style="grid-column: 2;">
+                        <img src="{% url 'mobile_bg:ad_image' prev_images.0.ad.adv prev_images.0.index 'big' %}"
+                             width="200" height="150"><br>
+                        {{ prev_images.0.get_photo_object_display }}
+                    </div>
+                {% endif %}
+
                 <img src="{% url 'mobile_bg:ad_image' image.ad.adv image.index 'big' %}"
-                     width="800" height="600" class="main-image">
+                     width="800" height="600" class="main-image" style="grid-column: 3;">
+
                 <img src="{% url 'mobile_bg:ad_image' next_images.0.ad.adv next_images.0.index 'big' %}"
-                     width="200" height="150" class="next-image" style="grid-column: 2;">
+                     width="200" height="150" class="next-image" style="grid-column: 4;">
                 <img src="{% url 'mobile_bg:ad_image' next_images.1.ad.adv next_images.1.index 'big' %}"
-                     width="200" height="150" class="next-image" style="grid-column: 3;">
+                     width="200" height="150" class="next-image" style="grid-column: 5;">
             </div>
             <form method="post">
                 {% csrf_token %}

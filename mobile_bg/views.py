@@ -1,4 +1,3 @@
-from django.db.models import F
 from django.http.response import Http404, HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
@@ -69,8 +68,8 @@ def recent_unlists(request):
 def annotate_interior_exterior(request):
     if request.method == 'POST':
         if 'whoops' in request.POST:
-            annotated_image = MobileBgAdImage.objects.order_by(
-                F('photo_object_at').desc(nulls_last=True)).first()
+            annotated_image = MobileBgAdImage.objects.filter(
+                photo_object_at__isnull=False).order_by('-photo_object_at').first()
             annotated_image.photo_object = None
             annotated_image.photo_object_at = None
         else:
@@ -80,10 +79,13 @@ def annotate_interior_exterior(request):
         annotated_image.save(update_fields=['photo_object', 'photo_object_at'])
 
     images = MobileBgAdImage.objects.filter(image_big__isnull=False, photo_object=None).order_by(
-        'id').select_related('ad')[:5]
+        'id').select_related('ad')[:3]
+    prev_images = MobileBgAdImage.objects.filter(
+        photo_object_at__isnull=False).order_by('-photo_object_at')[:2]
     return render(request, 'mobile_bg/annotate_interior_exterior.html', {
         'image': images[0],
         'next_images': images[1:],
+        'prev_images': prev_images,
     })
 
 
