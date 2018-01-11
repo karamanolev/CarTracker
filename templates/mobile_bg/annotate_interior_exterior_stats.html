@@ -1,0 +1,17 @@
+{% extends 'bootstrap_shell.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            Annotated: {{ num_annotated }}<br>
+            Not annotated: {{ num_not_annotated }}<br>
+            Total: {{ num_total }}<br>
+            <br>
+            Class Exterior: {{ num_exterior }}<br>
+            Class Interior: {{ num_interior }}<br>
+            Class Engine: {{ num_engine }}<br>
+            Class Other: {{ num_other }}<br>
+        </div>
+    </div>
+{% endblock %}

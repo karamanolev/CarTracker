@@ -8,7 +8,6 @@
                  width="800" height="600">
             <form method="post">
                 {% csrf_token %}
-                Annotated so far: {{ num_annotated }}<br>
                 ID: {{ image.id }}<br>
                 <input type="hidden" name="image_id" value="{{ image.id }}"/>
                 <button id="btn_exterior" name="photo_object" value="1">Exterior (e)</button>

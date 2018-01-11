@@ -80,9 +80,24 @@ def annotate_interior_exterior(request):
         annotated_image.save(update_fields=['photo_object', 'photo_object_at'])
 
     image = MobileBgAdImage.objects.filter(image_big__isnull=False, photo_object=None).order_by(
-        'id').first()
+        'id').select_related('ad').first()
     print(image.ad.adv)
     return render(request, 'mobile_bg/annotate_interior_exterior.html', {
         'image': image,
+    })
+
+
+def annotate_interior_exterior_stats(request):
+    return render(request, 'mobile_bg/annotate_interior_exterior_stats.html', {
         'num_annotated': MobileBgAdImage.objects.filter(photo_object__isnull=False).count(),
+        'num_not_annotated': MobileBgAdImage.objects.filter(photo_object__isnull=True).count(),
+        'num_total': MobileBgAdImage.objects.count(),
+        'num_exterior': MobileBgAdImage.objects.filter(
+            photo_object=MobileBgAdImage.PHOTO_OBJECT_EXTERIOR).count(),
+        'num_interior': MobileBgAdImage.objects.filter(
+            photo_object=MobileBgAdImage.PHOTO_OBJECT_INTERIOR).count(),
+        'num_engine': MobileBgAdImage.objects.filter(
+            photo_object=MobileBgAdImage.PHOTO_OBJECT_ENGINE).count(),
+        'num_other': MobileBgAdImage.objects.filter(
+            photo_object=MobileBgAdImage.PHOTO_OBJECT_OTHER).count(),
     })
