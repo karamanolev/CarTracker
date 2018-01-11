@@ -62,3 +62,16 @@ def recent_unlists(request):
             'first_update',
         )[:100]),
     })
+
+
+def annotate_interior_exterior(request):
+    if request.method == 'POST':
+        annotated_image = MobileBgAdImage.objects.get(id=request.POST['image_id'])
+        annotated_image.photo_object = int(request.POST['photo_object'])
+        annotated_image.save(update_fields=['photo_object'])
+
+    image = MobileBgAdImage.objects.filter(image_big__isnull=False, photo_object=None).order_by('id').first()
+    print(image.ad.adv)
+    return render(request, 'mobile_bg/annotate_interior_exterior.html', {
+        'image': image,
+    })

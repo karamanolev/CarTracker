@@ -1,14 +1,15 @@
 from django.conf.urls import url
 
-from .views import ad_data, ads_data, ad_image, index, recent_price_changes, recent_unlists
+from . import views
 
 app_name = 'mobile_bg'
 
 urlpatterns = [
-    url(r'^$', index, name='index'),
-    url(r'^recent-price-changes$', recent_price_changes, name='recent_price_changes'),
-    url(r'^recent-unlists$', recent_unlists, name='recent_unlists'),
-    url(r'^mobile-bg/ads/(\d+)$', ad_data, name='ad_data'),
-    url(r'^mobile-bg/ads/$', ads_data, name='ads_data'),
-    url(r'^mobile-bg/ads/(\d+)/images/(\d+)/(big|small)$', ad_image, name='ad_image'),
+    url(r'^$', views.index, name='index'),
+    url(r'^recent-price-changes$', views.recent_price_changes, name='recent_price_changes'),
+    url(r'^recent-unlists$', views.recent_unlists, name='recent_unlists'),
+    url(r'^mobile-bg/ads/(\d+)$', views.ad_data, name='ad_data'),
+    url(r'^mobile-bg/ads/$', views.ads_data, name='ads_data'),
+    url(r'^mobile-bg/ads/(\d+)/images/(\d+)/(big|small)$', views.ad_image, name='ad_image'),
+    url(r'^annotate-interior-exterior$', views.annotate_interior_exterior, name='annotate_interior_exterior'),
 ]

@@ -1,0 +1,33 @@
+{% extends 'bootstrap_shell.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <img src="{% url 'mobile_bg:ad_image' image.ad.adv image.index 'big' %}" width="800" height="600">
+            <form method="post">
+                {% csrf_token %}
+                ID: {{ image.id }}<br>
+                <input type="hidden" name="image_id" value="{{ image.id }}"/>
+                <button id="btn_exterior" name="photo_object" value="1">Exterior</button>
+                <button id="btn_interior" name="photo_object" value="2">Interior</button>
+                <button id="btn_engine" name="photo_object" value="3">Engine</button>
+                <button id="btn_other" name="photo_object" value="4">Other</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $(document).keypress(function (e) {
+            if (e.which === 101) {  // Letter e
+                $('#btn_exterior').click();
+            } else if (e.which === 105) { // Letter i
+                $('#btn_interior').click();
+            } else if (e.which === 110) { // Letter n
+                $('#btn_engine').click();
+            } else if (e.which === 111) { // Letter o
+                $('#btn_other').click();
+            }
+        })
+    </script>
+{% endblock %}

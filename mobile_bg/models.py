@@ -233,11 +233,24 @@ def _image_big_upload_to(i, f):
 
 
 class MobileBgAdImage(models.Model):
+    PHOTO_OBJECT_EXTERIOR = 1
+    PHOTO_OBJECT_INTERIOR = 2
+    PHOTO_OBJECT_ENGINE = 3
+    PHOTO_OBJECT_OTHER = 4
+    PHOTO_OBJECT_CHOICES = (
+        (PHOTO_OBJECT_EXTERIOR, 'Екстериор'),
+        (PHOTO_OBJECT_INTERIOR, 'Интериор'),
+        (PHOTO_OBJECT_ENGINE, 'Двигател'),
+        (PHOTO_OBJECT_OTHER, 'Друго'),
+    )
+
     ad = models.ForeignKey(MobileBgAd, models.CASCADE, related_name='images')
     index = models.IntegerField()
     small_url = models.CharField(max_length=512)
     big_url = models.CharField(max_length=512)
     image_big = models.FileField(upload_to=_image_big_upload_to)
+
+    photo_object = models.IntegerField(null=True, choices=PHOTO_OBJECT_CHOICES)
 
     def _download(self, url):
         try:
