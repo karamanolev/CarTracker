@@ -79,11 +79,11 @@ def annotate_interior_exterior(request):
             annotated_image.photo_object_at = timezone.now()
         annotated_image.save(update_fields=['photo_object', 'photo_object_at'])
 
-    image = MobileBgAdImage.objects.filter(image_big__isnull=False, photo_object=None).order_by(
-        'id').select_related('ad').first()
-    print(image.ad.adv)
+    images = MobileBgAdImage.objects.filter(image_big__isnull=False, photo_object=None).order_by(
+        'id').select_related('ad')[:5]
     return render(request, 'mobile_bg/annotate_interior_exterior.html', {
-        'image': image,
+        'image': images[0],
+        'next_images': images[1:],
     })
 
 

@@ -13,3 +13,17 @@ body {
     background-color: #727b84;
     border-color: #6c757d;
 }
+
+.annotate-interior-exterior-images {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    grid-column-gap: 8px;
+}
+
+.annotate-interior-exterior-images .main-image {
+    grid-column: 1;
+}
+
+.annotate-interior-exterior-images .next-image {
+    grid-column: 1;
+}

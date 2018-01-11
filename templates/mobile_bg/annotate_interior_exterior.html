@@ -4,8 +4,14 @@
 {% block content %}
     <div class="row">
         <div class="col-md-12">
-            <img src="{% url 'mobile_bg:ad_image' image.ad.adv image.index 'big' %}"
-                 width="800" height="600">
+            <div class="annotate-interior-exterior-images">
+                <img src="{% url 'mobile_bg:ad_image' image.ad.adv image.index 'big' %}"
+                     width="800" height="600" class="main-image">
+                <img src="{% url 'mobile_bg:ad_image' next_images.0.ad.adv next_images.0.index 'big' %}"
+                     width="200" height="150" class="next-image" style="grid-column: 2;">
+                <img src="{% url 'mobile_bg:ad_image' next_images.1.ad.adv next_images.1.index 'big' %}"
+                     width="200" height="150" class="next-image" style="grid-column: 3;">
+            </div>
             <form method="post">
                 {% csrf_token %}
                 ID: {{ image.id }}<br>
