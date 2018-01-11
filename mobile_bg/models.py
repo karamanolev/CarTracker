@@ -250,7 +250,7 @@ class MobileBgAdImage(models.Model):
     big_url = models.CharField(max_length=512)
     image_big = models.FileField(upload_to=_image_big_upload_to)
 
-    photo_object = models.IntegerField(null=True, choices=PHOTO_OBJECT_CHOICES)
+    photo_object = models.IntegerField(null=True, choices=PHOTO_OBJECT_CHOICES, db_index=True)
     photo_object_at = models.DateTimeField(null=True)
 
     def _download(self, url):

@@ -84,4 +84,5 @@ def annotate_interior_exterior(request):
     print(image.ad.adv)
     return render(request, 'mobile_bg/annotate_interior_exterior.html', {
         'image': image,
+        'num_annotated': MobileBgAdImage.objects.filter(photo_object__isnull=False).count(),
     })
