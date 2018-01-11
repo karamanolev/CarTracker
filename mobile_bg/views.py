@@ -1,5 +1,7 @@
+from django.db.models import F
 from django.http.response import Http404, HttpResponse
 from django.shortcuts import render
+from django.utils import timezone
 
 from CarTracker.utils import json_response
 from mobile_bg.models import MobileBgAd, MobileBgAdImage
@@ -66,11 +68,19 @@ def recent_unlists(request):
 
 def annotate_interior_exterior(request):
     if request.method == 'POST':
-        annotated_image = MobileBgAdImage.objects.get(id=request.POST['image_id'])
-        annotated_image.photo_object = int(request.POST['photo_object'])
-        annotated_image.save(update_fields=['photo_object'])
+        if 'whoops' in request.POST:
+            annotated_image = MobileBgAdImage.objects.order_by(
+                F('photo_object_at').desc(nulls_last=True)).first()
+            annotated_image.photo_object = None
+            annotated_image.photo_object_at = None
+        else:
+            annotated_image = MobileBgAdImage.objects.get(id=request.POST['image_id'])
+            annotated_image.photo_object = int(request.POST['photo_object'])
+            annotated_image.photo_object_at = timezone.now()
+        annotated_image.save(update_fields=['photo_object', 'photo_object_at'])
 
-    image = MobileBgAdImage.objects.filter(image_big__isnull=False, photo_object=None).order_by('id').first()
+    image = MobileBgAdImage.objects.filter(image_big__isnull=False, photo_object=None).order_by(
+        'id').first()
     print(image.ad.adv)
     return render(request, 'mobile_bg/annotate_interior_exterior.html', {
         'image': image,
