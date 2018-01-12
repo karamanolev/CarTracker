@@ -5,7 +5,6 @@
     <tr>
         <th></th>
         <th>Model</th>
-        <th>Year</th>
         <th>Initial price</th>
         <th>Last price</th>
         {% if ads|any_ad_inactive %}
@@ -17,16 +16,26 @@
     {% for ad in ads %}
         <tr>
             <td>
-                <img src="{% url 'mobile_bg:ad_image' ad.adv 1 'big' %}" width="60" height="45">
+                <img src="{% url 'mobile_bg:ad_image' ad.adv 1 'big' %}" width="64" height="48">
             </td>
             <td>
                 <a href="{{ ad.url }}">
                     {{ ad.last_active_update.model_name }}
-                    {{ ad.last_active_update.model_mod }}
+                    {% if ad.last_active_update.model_mod %}
+                        {{ ad.last_active_update.model_mod }}
+                    {% endif %}
                 </a>
-            </td>
-            <td>
-                {{ ad.last_active_update.registration_date.year }}
+                <br>
+                {{ ad.last_active_update.registration_date.year }} г.,
+                {% if ad.last_active_update.power_hp %}
+                    {{ ad.last_active_update.power_hp }} к.с.
+                {% endif %}
+                {% if ad.last_active_update.transmission_type %}
+                    {{ ad.last_active_update.get_transmission_type_display }}
+                {% endif %}
+                {% if ad.last_active_update.mileage_km %}
+                    {{ ad.last_active_update.mileage_km }} км
+                {% endif %}
             </td>
             <td>
                 {{ ad.first_update.price }}

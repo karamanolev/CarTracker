@@ -27,6 +27,9 @@ function initChartjs($canvas, adData, adStats) {
                                 day: 'DD/MM',
                             },
                             unit: 'day',
+                            tooltipFormat: {
+                                day: 'DD/MM',
+                            },
                         },
                     }],
                     yAxes: [{

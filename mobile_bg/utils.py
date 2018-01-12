@@ -5,7 +5,7 @@ from datetime import date
 from bs4 import NavigableString
 
 from CarTracker.utils import requests_get_retry
-from mobile_bg.models_mixins import EngineTypeMixin, TransmissionTypeMixin
+from mobile_bg.models_mixins import EngineTypeMixin, TransmissionTypeMixin, PriceMixin
 
 
 def parse_price(raw_price):
@@ -19,6 +19,18 @@ def parse_price(raw_price):
         return int(raw_price.replace('USD', '')), MobileBgAdUpdate.CURRENCY_USD
     else:
         raise Exception('Unknown currency for price {}'.format(raw_price))
+
+
+def format_price(price, currency):
+    if currency == PriceMixin.CURRENCY_BGN:
+        fmt = '{} лв.'
+    elif currency == PriceMixin.CURRENCY_EUR:
+        fmt = '{} EUR'
+    elif currency == PriceMixin.CURRENCY_USD:
+        fmt = '${}'
+    else:
+        raise Exception('Unknown currency')
+    return fmt.format(price)
 
 
 def find_ga_prop(html, prop_name):

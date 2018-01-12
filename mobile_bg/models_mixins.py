@@ -191,9 +191,9 @@ class TransmissionTypeMixin(models.Model):
     TRANSMISSION_AUTOMATIC = 1
     TRANSMISSION_SEMIAUTOMATIC = 2
     TRANSMISSION_CHOICES = (
-        (TRANSMISSION_MANUAL, 'Manual'),
-        (TRANSMISSION_AUTOMATIC, 'Automatic'),
-        (TRANSMISSION_SEMIAUTOMATIC, 'Semiautomatic'),
+        (TRANSMISSION_MANUAL, 'Ръчни'),
+        (TRANSMISSION_AUTOMATIC, 'Автоматик'),
+        (TRANSMISSION_SEMIAUTOMATIC, 'Полуавтоматик'),
     )
 
     transmission_type = models.IntegerField(null=True, blank=True, choices=TRANSMISSION_CHOICES)

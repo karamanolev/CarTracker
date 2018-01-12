@@ -4,6 +4,8 @@ from django import template
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.safestring import mark_safe
 
+from mobile_bg.utils import format_price
+
 register = template.Library()
 
 
@@ -22,3 +24,8 @@ def any_ad_inactive(ads):
         if not ad.active:
             return True
     return False
+
+
+@register.filter()
+def format_update_price(update):
+    return format_price(update.price, update.price_currency)

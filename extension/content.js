@@ -8,14 +8,13 @@ function formatPrice(priceWithCurrency) {
     if (priceWithCurrency === null) {
         return '-';
     }
-    const p = priceWithCurrency.price.toFixed(2) + ' ',
-        currency = priceWithCurrency.currency;
+    const currency = priceWithCurrency.currency;
     if (currency === 0) {
-        return p + ' лв.';
+        return priceWithCurrency.price + ' лв.';
     } else if (currency === 1) {
-        return p + ' EUR';
+        return priceWithCurrency.price + ' EUR';
     } else if (currency === 2) {
-        return '$' + p;
+        return '$' + priceWithCurrency.price;
     } else {
         throw 'Unknown currency';
     }
