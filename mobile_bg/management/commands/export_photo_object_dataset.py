@@ -14,7 +14,8 @@ class Command(BaseCommand):
     def _export_class(self, target, photo_object, class_name):
         class_target = os.path.join(target, class_name)
         os.makedirs(class_target)
-        for i, image in enumerate(MobileBgAdImage.objects.filter(photo_object=photo_object), 1):
+        images = MobileBgAdImage.objects.filter(photo_object=photo_object).order_by('id')
+        for i, image in enumerate(images, 1):
             shutil.copyfile(image.image_big.path, os.path.join(class_target, '{}.jpg'.format(i)))
 
     def handle(self, *args, **options):
