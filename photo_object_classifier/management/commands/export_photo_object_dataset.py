@@ -13,18 +13,22 @@ class Command(BaseCommand):
 
     def _copy_images(self, target, images):
         os.makedirs(target)
+        written = 0
         for i, image in enumerate(images, 1):
             shutil.copyfile(
                 image.image_big.path,
                 os.path.join(target, '{}.jpg'.format(i)),
             )
+            written += 1
+        return written
 
     def _export_class(self, target, photo_object, class_name):
         print('Exporting {}'.format(class_name))
         images = list(MobileBgAdImage.objects.filter(photo_object=photo_object).order_by('id'))
         num_train = int(len(images) * 0.8)
-        self._copy_images(os.path.join(target, 'train', class_name), images[:num_train])
-        self._copy_images(os.path.join(target, 'validation', class_name), images[num_train:])
+        train = self._copy_images(os.path.join(target, 'train', class_name), images[:num_train])
+        val = self._copy_images(os.path.join(target, 'validation', class_name), images[num_train:])
+        print('Wrote {} training and {} validation samples'.format(train, val))
 
     def handle(self, *args, **options):
         target = os.path.abspath(options['target_directory'])
