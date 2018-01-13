@@ -55,7 +55,7 @@ class Command(BaseCommand):
         model.fit_generator(
             train_data,
             steps_per_epoch=512,
-            epochs=10,
+            epochs=15,
             callbacks=[tb],
             validation_data=validation_data,
             shuffle=True,

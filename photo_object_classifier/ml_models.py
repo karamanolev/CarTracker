@@ -1,3 +1,5 @@
+import os
+
 from keras import backend as K
 from keras.layers import Input, Dense, Conv2D, MaxPooling2D, AveragePooling2D, ZeroPadding2D, \
     Flatten, add, Activation
@@ -133,15 +135,10 @@ def resnet50_model(img_rows, img_cols, color_type=1, num_classes=None):
 
     # Create model
     model = Model(img_input, x_fc)
-
-    # Load ImageNet pre-trained data
-    if K.image_dim_ordering() == 'th':
-        # Use pre-trained weights for Theano backend
-        weights_path = 'imagenet_models/resnet50_weights_th_dim_ordering_th_kernels.h5'
-    else:
-        # Use pre-trained weights for Tensorflow backend
-        weights_path = 'imagenet_models/resnet50_weights_tf_dim_ordering_tf_kernels.h5'
-
+    weights_path = os.path.join(
+        os.path.dirname(__file__),
+        'imagenet_models/resnet50_weights_tf_dim_ordering_tf_kernels.h5',
+    )
     model.load_weights(weights_path)
 
     # Truncate and replace softmax layer for transfer learning
