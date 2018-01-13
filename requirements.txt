@@ -8,3 +8,4 @@ html5lib==1.0.1
 djangorestframework==3.7.7
 Keras==2.1.2
 tensorflow-gpu==1.4.1
+h5py==2.7.1
