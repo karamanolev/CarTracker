@@ -1,6 +1,9 @@
 .idea/
 db.sqlite3*
 dump.sql.gz
+photo_object_classifier/imagenet_models/
+photo_object_classifier/dataset/
+photo_object_classifier/logs/
 
 # Created by .ignore support plugin (hsz.mobi)
 ### Python template
