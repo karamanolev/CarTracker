@@ -15,5 +15,5 @@ class Command(BaseCommand):
             POC_NUM_CLASSES,
             POC_SAVED_MODEL_PATH,
             options['steps_per_epoch'],
-            options['epoch'],
+            options['epochs'],
         )

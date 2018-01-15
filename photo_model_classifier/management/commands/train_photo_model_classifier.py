@@ -15,5 +15,5 @@ class Command(BaseCommand):
             PMC_NUM_CLASSES,
             PMC_SAVED_MODEL_PATH,
             options['steps_per_epoch'],
-            options['epoch'],
+            options['epochs'],
         )
