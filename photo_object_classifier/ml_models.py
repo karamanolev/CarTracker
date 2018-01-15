@@ -1,6 +1,9 @@
 import os
 
+import tensorflow as tf
+from django.conf import settings
 from keras import backend as K
+from keras.backend import set_session
 from keras.layers import Input, Dense, Conv2D, MaxPooling2D, AveragePooling2D, ZeroPadding2D, \
     Flatten, add, Activation
 from keras.layers.normalization import BatchNormalization
@@ -11,6 +14,9 @@ IMG_ROWS, IMG_COLS = 224, 224  # Resolution of inputs
 MODEL_CHANNELS = 3
 NUM_CLASSES = 4
 BATCH_SIZE = 16
+POC_BASE_DIR = os.path.join(settings.BASE_DIR, 'photo_object_classifier')
+SAVED_MODEL_PATH = os.path.join(POC_BASE_DIR, 'saved_model.h5')
+CLASSES = sorted(['interior', 'exterior', 'engine', 'other'])
 
 
 def identity_block(input_tensor, kernel_size, filters, stage, block):
@@ -156,3 +162,9 @@ def resnet50_model(img_rows, img_cols, color_type=1, num_classes=None):
     model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy'])
 
     return model
+
+
+def set_tf_session():
+    config = tf.ConfigProto()
+    config.gpu_options.per_process_gpu_memory_fraction = 0.9
+    set_session(tf.Session(config=config))

@@ -1,23 +1,15 @@
 import os
-
-import tensorflow as tf
-from django.conf import settings
 from django.core.management.base import BaseCommand
-from keras.backend import set_session
 from keras.callbacks import TensorBoard
 from keras.preprocessing.image import ImageDataGenerator
 
 from photo_object_classifier.ml_models import resnet50_model, IMG_ROWS, IMG_COLS, MODEL_CHANNELS, \
-    NUM_CLASSES, BATCH_SIZE
-
-POC_BASE_DIR = os.path.join(settings.BASE_DIR, 'photo_object_classifier')
+    NUM_CLASSES, BATCH_SIZE, POC_BASE_DIR, SAVED_MODEL_PATH
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        config = tf.ConfigProto()
-        config.gpu_options.per_process_gpu_memory_fraction = 0.9
-        set_session(tf.Session(config=config))
+
 
         model = resnet50_model(IMG_ROWS, IMG_COLS, MODEL_CHANNELS, NUM_CLASSES)
 
@@ -62,4 +54,4 @@ class Command(BaseCommand):
             verbose=1,
         )
 
-        model.save(os.path.join(POC_BASE_DIR, 'saved_model.h5'))
+        model.save(SAVED_MODEL_PATH)
