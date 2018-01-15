@@ -9,6 +9,7 @@ from keras.layers import Input, Dense, Conv2D, MaxPooling2D, AveragePooling2D, Z
 from keras.layers.normalization import BatchNormalization
 from keras.models import Model
 from keras.optimizers import SGD
+from keras.preprocessing import image
 
 IMG_ROWS, IMG_COLS = 224, 224  # Resolution of inputs
 MODEL_CHANNELS = 3
@@ -168,3 +169,8 @@ def set_tf_session():
     config = tf.ConfigProto()
     config.gpu_options.per_process_gpu_memory_fraction = 0.9
     set_session(tf.Session(config=config))
+
+
+def load_img_from_buffer(buffer):
+    im = image.load_img(buffer, target_size=(224, 224))
+    return image.img_to_array(im)

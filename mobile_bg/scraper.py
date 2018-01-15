@@ -94,7 +94,7 @@ def scrape():
 def print_ads_stats():
     print('Number of ads: {}'.format(MobileBgAd.objects.count()))
     print('Number of active ads: {}'.format(
-        MobileBgAd.objects.filter(last_update__active=True).count()))
+        MobileBgAd.objects.filter(active=True).count()))
     print('Number of ad updates: {}'.format(MobileBgAdUpdate.objects.count()))
     print('---------------------')
 

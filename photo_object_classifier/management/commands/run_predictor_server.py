@@ -6,9 +6,9 @@ import numpy
 from aiohttp import web
 from django.core.management import BaseCommand
 from keras.models import load_model
-from keras.preprocessing import image
 
-from photo_object_classifier.ml_models import CLASSES, set_tf_session, SAVED_MODEL_PATH
+from photo_object_classifier.ml_models import CLASSES, set_tf_session, SAVED_MODEL_PATH, \
+    load_img_from_buffer
 
 
 class Command(BaseCommand):
@@ -16,8 +16,7 @@ class Command(BaseCommand):
         try:
             data = await request.read()
 
-            im = image.load_img(BytesIO(data), target_size=(224, 224))
-            d = image.img_to_array(im)
+            d = load_img_from_buffer(BytesIO(data))
             d = numpy.expand_dims(d, axis=0)
             pred = self.model.predict(d, batch_size=16)[0]
             class_index = int(pred.argmax())
