@@ -12,6 +12,8 @@ def classify_image(image):
     if len(data) == 0:
         return False
     resp = requests.post('http://localhost:9090/predict', data=data).json()
+    if resp['version'] != settings.PHOTO_OBJECT_MODEL_VERSION:
+        raise Exception('Incosistent codebase and server versions')
     image.photo_object_pred = {
         'engine': MobileBgAdImage.PHOTO_OBJECT_ENGINE,
         'exterior': MobileBgAdImage.PHOTO_OBJECT_EXTERIOR,
