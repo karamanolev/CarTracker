@@ -60,27 +60,35 @@ def _update_ads_by_id(ids):
 
 
 def scrape():
+    slink_expiry = timezone.now() - settings.SLINK_EXPIRY
     slink_threshold = timezone.now() - settings.SLINK_UPDATE_FREQUENCY
     partial_threshold = timezone.now() - settings.PARTIAL_UPDATE_FREQUENCY
     full_threshold = timezone.now() - settings.FULL_UPDATE_FREQUENCY
 
-    scrape_links = MobileBgScrapeLink.objects.filter(
+    scrape_links_expired = MobileBgScrapeLink.objects.filter(
+        Q(slink_update_date__lte=slink_expiry) | Q(slink_update_date=None),
+    )
+    for scrape_link in scrape_links_expired:
+        print('Refreshing slink {}'.format(scrape_link))
+        scrape_link.refresh_slink()
+
+    scrape_links_to_update = MobileBgScrapeLink.objects.filter(
         Q(last_update_date__lte=slink_threshold) | Q(last_update_date=None),
     ).order_by(
         F('last_update_date').asc(nulls_first=True),
     )
-    for scrape_link in scrape_links:
+    for scrape_link in scrape_links_to_update:
         print('Updating slink {}'.format(scrape_link))
         _update_ads_list(scrape_link)
 
-    ad_ids = list(MobileBgAd.objects.filter(
+    ad_ids_to_update = list(MobileBgAd.objects.filter(
         Q(last_update=None) |
         Q(last_update__date__lte=partial_threshold, active=True) |
         Q(last_full_update__date__lte=full_threshold, active=True),
     ).order_by(
         F('last_full_update__date').asc(nulls_first=True),
     ).values_list('id', flat=True)[:settings.BATCH_UPDATE_SIZE])
-    _update_ads_by_id(ad_ids)
+    _update_ads_by_id(ad_ids_to_update)
 
 
 def print_ads_stats():

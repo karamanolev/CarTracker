@@ -72,8 +72,8 @@ class MobileBgScrapeLink(VehicleTypeMixin, models.Model):
 
     def refresh_slink(self):
         data = {
-            'topmenu': '1',
-            'rub': str(self.vehicle_type),  # Rubric
+            'topmenu': str(self.vehicle_type),
+            'rub': '1',  # Rubric
             'act': '3',
             'rub_pub_save': '1',
             'f0': '37.157.188.130',  # IP?
