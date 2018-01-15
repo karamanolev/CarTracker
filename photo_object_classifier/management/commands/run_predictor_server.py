@@ -46,7 +46,9 @@ class Command(BaseCommand):
         set_tf_session()
         self.model = load_model(SAVED_MODEL_PATH)
 
-        app = web.Application()
+        app = web.Application(
+            client_max_size=64 * 1024 ** 2,  # 64MB
+        )
         app.router.add_post('/predict', self.index)
         app.router.add_get('/version', self.version)
         web.run_app(app, host='127.0.0.1', port=9090)
