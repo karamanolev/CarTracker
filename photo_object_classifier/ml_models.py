@@ -18,6 +18,7 @@ BATCH_SIZE = 16
 POC_BASE_DIR = os.path.join(settings.BASE_DIR, 'photo_object_classifier')
 SAVED_MODEL_PATH = os.path.join(POC_BASE_DIR, 'saved_model.h5')
 CLASSES = sorted(['interior', 'exterior', 'engine', 'other'])
+MODEL_VERSION = 1
 
 
 def identity_block(input_tensor, kernel_size, filters, stage, block):

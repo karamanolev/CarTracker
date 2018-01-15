@@ -286,6 +286,8 @@ class MobileBgAdImage(models.Model):
 
     photo_object = models.IntegerField(null=True, choices=PHOTO_OBJECT_CHOICES, db_index=True)
     photo_object_at = models.DateTimeField(null=True, db_index=True)
+    photo_object_pred = models.IntegerField(null=True, choices=PHOTO_OBJECT_CHOICES, db_index=True)
+    photo_object_pred_v = models.IntegerField(null=True)
 
     def _download(self, url):
         try:

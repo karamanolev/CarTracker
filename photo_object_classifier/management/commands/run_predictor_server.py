@@ -8,7 +8,7 @@ from django.core.management import BaseCommand
 from keras.models import load_model
 
 from photo_object_classifier.ml_models import CLASSES, set_tf_session, SAVED_MODEL_PATH, \
-    load_img_from_buffer
+    load_img_from_buffer, MODEL_VERSION
 
 
 class Command(BaseCommand):
@@ -25,11 +25,17 @@ class Command(BaseCommand):
             return web.Response(text=json.dumps({
                 'class_index': class_index,
                 'class_name': class_name,
+                'version': MODEL_VERSION,
             }))
         except Exception:
             return web.Response(text=json.dumps({
                 'error': traceback.format_exc(),
             }))
+
+    async def version(self, request):
+        return web.Response(text=json.dumps({
+            'version': MODEL_VERSION,
+        }))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -40,5 +46,6 @@ class Command(BaseCommand):
         self.model = load_model(SAVED_MODEL_PATH)
 
         app = web.Application()
-        app.router.add_post('/', self.index)
+        app.router.add_post('/predict', self.index)
+        app.router.add_get('/version', self.version)
         web.run_app(app, host='127.0.0.1', port=9090)
