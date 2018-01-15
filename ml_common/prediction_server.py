@@ -4,15 +4,18 @@ from io import BytesIO
 
 import numpy
 from aiohttp import web
-from django.conf import settings
-from django.core.management import BaseCommand
 from keras.models import load_model
 
 from ml_common.ml_models import load_img_from_buffer, set_tf_session
-from photo_object_classifier.ml_models import POC_CLASSES, POC_SAVED_MODEL_PATH
 
 
-class Command(BaseCommand):
+class PredictionServer:
+    def __init__(self, model_path, model_version, classes):
+        set_tf_session()
+        self.model = load_model(model_path)
+        self.model_version = model_version
+        self.classes = classes
+
     async def index(self, request):
         try:
             data = await request.read()
@@ -21,12 +24,12 @@ class Command(BaseCommand):
             d = numpy.expand_dims(d, axis=0)
             pred = self.model.predict(d, batch_size=16)[0]
             class_index = int(pred.argmax())
-            class_name = POC_CLASSES[class_index]
+            class_name = self.classes[class_index]
 
             return web.Response(text=json.dumps({
                 'class_index': class_index,
                 'class_name': class_name,
-                'version': settings.PHOTO_OBJECT_MODEL_VERSION,
+                'version': self.model_version,
             }))
         except Exception:
             return web.Response(text=json.dumps({
@@ -35,20 +38,13 @@ class Command(BaseCommand):
 
     async def version(self, request):
         return web.Response(text=json.dumps({
-            'version': settings.PHOTO_OBJECT_MODEL_VERSION,
+            'version': self.model_version,
         }))
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.model = None
-
-    def handle(self, *args, **options):
-        set_tf_session()
-        self.model = load_model(POC_SAVED_MODEL_PATH)
-
+    def serve(self, port):
         app = web.Application(
             client_max_size=64 * 1024 ** 2,  # 64MB
         )
         app.router.add_post('/predict', self.index)
         app.router.add_get('/version', self.version)
-        web.run_app(app, host='127.0.0.1', port=9090)
+        web.run_app(app, host='127.0.0.1', port=port)

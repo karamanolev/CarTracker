@@ -24,19 +24,22 @@ class Command(BaseCommand):
             written += 1
         return written
 
-    def _export_class(self, target, brand, class_name):
+    def _export_class(self, target, brand, class_name, num_samples):
         print('Exporting {}'.format(class_name))
         images = list(MobileBgAdImage.objects.filter(
             photo_object_pred=MobileBgAdImage.PHOTO_OBJECT_EXTERIOR,
             ad__last_active_update__make_brand=brand,
-        ).order_by('id')[:self.num_samples])
+        ).order_by('id')[:num_samples])
+        if len(images) < num_samples:
+            print('Insufficient examples of class {}, {} present, {} requested'.format(
+                class_name, len(images), num_samples))
         num_train = int(len(images) * 0.8)
         train = self._copy_images(os.path.join(target, 'train', class_name), images[:num_train])
         val = self._copy_images(os.path.join(target, 'validation', class_name), images[num_train:])
         print('Wrote {} training and {} validation samples'.format(train, val))
 
     def handle(self, *args, **options):
-        self.num_samples = options['num_samples']
+        num_samples = options['num_samples']
         target = os.path.abspath(options['target_directory'])
         target_contents = os.listdir(target)
         if target_contents:
@@ -48,4 +51,4 @@ class Command(BaseCommand):
             else:
                 exit(1)
         for brand, slug in BRAND_TO_SLUG.items():
-            self._export_class(target, brand, slug)
+            self._export_class(target, brand, slug, num_samples)
