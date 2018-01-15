@@ -1,3 +1,7 @@
-from django.shortcuts import render
+from ml_common.views import DemoViewBase
+from photo_model_classifier.api import classify_blob_photo_model
 
-# Create your views here.
+
+class DemoView(DemoViewBase):
+    def get_class_display(self, image_data):
+        return [classify_blob_photo_model(image_data)]

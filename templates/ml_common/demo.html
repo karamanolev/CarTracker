@@ -1,0 +1,33 @@
+{% extends 'bootstrap_shell.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <p>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>URL:</label>
+                    <input class="form-control" type="text" name="url" value="{{ url }}">
+                </div>
+                <div class="form-group">
+                    <label>File:</label>
+                    <input class="form-control" type="file" name="file">
+                </div>
+                <button type="submit" class="btn btn-primary">Classify</button>
+            </form>
+            </p>
+
+            {% if class_names %}
+                <p>
+                    <img src="data:image/jpeg;base64,{{ image_base64 }}" width="600">
+                    <br>
+                </p>
+                {% for class_name in class_names %}
+                    <h2>{{ class_name }}</h2>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

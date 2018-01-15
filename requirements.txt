@@ -11,4 +11,4 @@ Keras==2.1.2
 tensorflow==1.4.1
 h5py==2.7.1
 Pillow==5.0.0
-aiohttp==2.3.7
+aiohttp==2.3.8

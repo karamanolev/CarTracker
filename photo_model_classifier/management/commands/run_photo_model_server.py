@@ -9,7 +9,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         server = PredictionServer(
             PMC_SAVED_MODEL_PATH,
-            settings.POC_MODEL_VERSION,
+            settings.PHOTO_MODEL_MODEL_VERSION,
             PMC_CLASSES,
         )
         server.serve(9091)

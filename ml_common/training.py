@@ -23,9 +23,11 @@ def train_model(base_dir, num_classes, saved_model_path, steps_per_epoch, epochs
     )
 
     train_data = ImageDataGenerator(
-        rotation_range=10,
-        zoom_range=0.2,
-        fill_mode='wrap',
+        rotation_range=25,
+        zoom_range=0.3,
+        fill_mode='constant',
+        cval=0,
+        horizontal_flip=True,
         data_format='channels_last',
     ).flow_from_directory(
         os.path.join(base_dir, 'dataset', 'train'),

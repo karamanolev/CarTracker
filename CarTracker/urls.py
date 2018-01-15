@@ -18,10 +18,19 @@ from django.conf.urls import url, include
 from django.contrib import admin
 
 import mobile_bg.urls
+import ml_common.urls
+import photo_object_classifier.urls
+import photo_model_classifier.urls
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^', include(mobile_bg.urls, namespace='mobile_bg')),
+    url(r'^ml/', include(
+        ml_common.urls, namespace='ml_common')),
+    url(r'^photo-object/', include(
+        photo_object_classifier.urls, namespace='photo_object_classifier')),
+    url(r'^photo-model/', include(
+        photo_model_classifier.urls, namespace='photo_model_classifier')),
 ]
 
 if settings.DEBUG:

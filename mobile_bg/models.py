@@ -289,6 +289,10 @@ class MobileBgAdImage(models.Model):
     photo_object_pred = models.IntegerField(null=True, choices=PHOTO_OBJECT_CHOICES, db_index=True)
     photo_object_pred_v = models.IntegerField(null=True)
 
+    @classmethod
+    def photo_object_to_str(cls, photo_object):
+        return dict(cls.PHOTO_OBJECT_CHOICES).get(photo_object)
+
     def _download(self, url):
         try:
             print('Downloading image {}'.format(url))
