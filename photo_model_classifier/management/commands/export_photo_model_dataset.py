@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand
 from pip._vendor.distlib._backport import shutil
 
 from mobile_bg.models import MobileBgAdImage
-from photo_object_classifier.ml_models import BRAND_TO_SLUG
+from photo_model_classifier.ml_models import BRAND_TO_SLUG
 
 
 class Command(BaseCommand):
