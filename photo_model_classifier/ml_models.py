@@ -3,7 +3,17 @@ import os
 from django.conf import settings
 from django.utils.text import slugify
 
-PMC_CLASSES = sorted(['Audi', 'BMW', 'Mercedes-Benz', 'Nissan', 'Peugeot', 'VW'])
+PMC_CLASSES = sorted([
+    'Audi',
+    'BMW',
+    'Citroen',
+    'Ford',
+    'Mercedes-Benz',
+    'Nissan',
+    'Opel',
+    'Peugeot',
+    'VW',
+])
 PMC_NUM_CLASSES = len(PMC_CLASSES)
 PMC_BASE_DIR = os.path.join(settings.BASE_DIR, 'photo_model_classifier')
 PMC_SAVED_MODEL_PATH = os.path.join(PMC_BASE_DIR, 'saved_model.h5')
