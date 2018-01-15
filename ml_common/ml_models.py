@@ -154,7 +154,7 @@ def resnet50_model(img_rows, img_cols, color_type=1, num_classes=None):
     model = Model(img_input, x_newfc)
 
     # Learning rate is changed to 0.001
-    sgd = SGD(lr=1e-3, decay=1e-6, momentum=0.9, nesterov=True)
+    sgd = SGD(lr=5e-3, decay=5e-7, momentum=0.9, nesterov=True)
     model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy'])
 
     return model

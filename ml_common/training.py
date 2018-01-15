@@ -51,4 +51,5 @@ def train_model(base_dir, num_classes, saved_model_path, steps_per_epoch, epochs
         verbose=1,
     )
 
+    print('Saving model...')
     model.save(saved_model_path)

@@ -33,6 +33,7 @@ class Command(BaseCommand):
         if len(images) < num_samples:
             print('Insufficient examples of class {}, {} present, {} requested'.format(
                 class_name, len(images), num_samples))
+            exit(1)
         num_train = int(len(images) * 0.8)
         train = self._copy_images(os.path.join(target, 'train', class_name), images[:num_train])
         val = self._copy_images(os.path.join(target, 'validation', class_name), images[num_train:])

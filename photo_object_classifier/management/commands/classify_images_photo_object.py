@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from requests import ConnectionError
 
 from mobile_bg.models import MobileBgAdImage
-from photo_object_classifier.api import classify_image
+from photo_object_classifier.api import save_image_photo_object_classification
 
 
 class Command(BaseCommand):
@@ -21,4 +21,4 @@ class Command(BaseCommand):
         for i, image_id in enumerate(image_ids, 1):
             print('Classifying {} ({} / {})'.format(image_id, i, len(image_ids)))
             image = MobileBgAdImage.objects.get(id=image_id)
-            classify_image(image)
+            save_image_photo_object_classification(image)
