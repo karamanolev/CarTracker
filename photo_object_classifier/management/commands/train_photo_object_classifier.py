@@ -1,17 +1,17 @@
 import os
+
 from django.core.management.base import BaseCommand
 from keras.callbacks import TensorBoard
 from keras.preprocessing.image import ImageDataGenerator
 
-from photo_object_classifier.ml_models import resnet50_model, IMG_ROWS, IMG_COLS, MODEL_CHANNELS, \
-    NUM_CLASSES, BATCH_SIZE, POC_BASE_DIR, SAVED_MODEL_PATH
+from ml_common.ml_models import resnet50_model, IMG_ROWS, IMG_COLS, MODEL_CHANNELS, \
+    BATCH_SIZE
+from photo_object_classifier.ml_models import POC_NUM_CLASSES, POC_BASE_DIR, POC_SAVED_MODEL_PATH
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-
-
-        model = resnet50_model(IMG_ROWS, IMG_COLS, MODEL_CHANNELS, NUM_CLASSES)
+        model = resnet50_model(IMG_ROWS, IMG_COLS, MODEL_CHANNELS, POC_NUM_CLASSES)
 
         tb = TensorBoard(
             log_dir=os.path.join(POC_BASE_DIR, 'logs'),
@@ -54,4 +54,4 @@ class Command(BaseCommand):
             verbose=1,
         )
 
-        model.save(SAVED_MODEL_PATH)
+        model.save(POC_SAVED_MODEL_PATH)

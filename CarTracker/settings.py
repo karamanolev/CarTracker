@@ -43,7 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'debug_toolbar',
     'mobile_bg',
+    'ml_common',
     'photo_object_classifier',
+    'photo_model_classifier',
 ]
 
 MIDDLEWARE = [

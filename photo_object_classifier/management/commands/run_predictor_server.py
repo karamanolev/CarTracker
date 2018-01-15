@@ -8,8 +8,8 @@ from django.conf import settings
 from django.core.management import BaseCommand
 from keras.models import load_model
 
-from photo_object_classifier.ml_models import CLASSES, set_tf_session, SAVED_MODEL_PATH, \
-    load_img_from_buffer
+from ml_common.ml_models import load_img_from_buffer, set_tf_session
+from photo_object_classifier.ml_models import POC_CLASSES, POC_SAVED_MODEL_PATH
 
 
 class Command(BaseCommand):
@@ -21,7 +21,7 @@ class Command(BaseCommand):
             d = numpy.expand_dims(d, axis=0)
             pred = self.model.predict(d, batch_size=16)[0]
             class_index = int(pred.argmax())
-            class_name = CLASSES[class_index]
+            class_name = POC_CLASSES[class_index]
 
             return web.Response(text=json.dumps({
                 'class_index': class_index,
@@ -44,7 +44,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         set_tf_session()
-        self.model = load_model(SAVED_MODEL_PATH)
+        self.model = load_model(POC_SAVED_MODEL_PATH)
 
         app = web.Application(
             client_max_size=64 * 1024 ** 2,  # 64MB
