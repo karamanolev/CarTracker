@@ -6,6 +6,7 @@ from time import sleep
 from urllib.parse import urlparse, parse_qs, urlencode
 
 import bsdiff4
+import requests
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.core.files.base import ContentFile
@@ -23,6 +24,7 @@ from mobile_bg.utils import parse_price, parse_ad_location, parse_ad_model_name_
 
 class MobileBgScrapeLink(VehicleTypeMixin, models.Model):
     slink = models.CharField(max_length=16)
+    slink_update_date = models.DateTimeField(null=True, blank=True)
     name = models.CharField(max_length=64)
     min_price = models.IntegerField(null=True, blank=True)
     max_price = models.IntegerField(null=True, blank=True)
@@ -67,6 +69,38 @@ class MobileBgScrapeLink(VehicleTypeMixin, models.Model):
         if search_text != expected_text:
             raise Exception('Slink {} does not verify "{}" != "{}"'.format(
                 self.slink, search_text, expected_text))
+
+    def refresh_slink(self):
+        data = {
+            'topmenu': '1',
+            'rub': str(self.vehicle_type),  # Rubric
+            'act': '3',
+            'rub_pub_save': '1',
+            'f0': '37.157.188.130',  # IP?
+            'f1': '1',  # Constant
+            'f2': '1',  # Constant
+            'f3': '1',  # Constant
+            'f4': '1',  # Constant
+            'f5': self.name,  # Brand
+            'f20': '1',  # Sort order: Brand, Model, Price
+            'f21': '01',  # Sort order: Brand, Model, Price
+            'f24': '0',  # All ads, both private and dealers
+        }
+        if self.min_price is not None:
+            data['f7'] = str(self.min_price)
+        if self.max_price is not None:
+            data['f8'] = str(self.max_price)
+        resp = requests.post(
+            'https://www.mobile.bg/pcgi/mobile.cgi',
+            data=data,
+            allow_redirects=False,
+        )
+        assert resp.status_code == 303
+        parsed = urlparse(resp.headers['Location'])
+        qs = parse_qs(parsed.query)
+        self.slink = qs['slink'][0]
+        self.slink_update_date = timezone.now()
+        self.save(update_fields=['slink', 'slink_update_date'])
 
     class Meta:
         ordering = ('vehicle_type', 'name', 'max_price')
