@@ -13,9 +13,10 @@ class Command(BaseCommand):
         except ConnectionError:
             print('ERROR: Unable to connect to prediction server!')
             exit(1)
+
         print('Listing images...')
-        image_ids = list(MobileBgAdImage.objects.exclude(photo_object_pred_v=version).values_list(
-            'id', flat=True))
+        image_ids = list(MobileBgAdImage.objects.exclude(
+            photo_object_pred_v=version).values_list('id', flat=True))
         image_ids.sort()
         for i, image_id in enumerate(image_ids, 1):
             print('Classifying {} ({} / {})'.format(image_id, i, len(image_ids)))

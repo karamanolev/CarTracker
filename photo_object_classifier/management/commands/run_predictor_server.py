@@ -4,11 +4,12 @@ from io import BytesIO
 
 import numpy
 from aiohttp import web
+from django.conf import settings
 from django.core.management import BaseCommand
 from keras.models import load_model
 
 from photo_object_classifier.ml_models import CLASSES, set_tf_session, SAVED_MODEL_PATH, \
-    load_img_from_buffer, MODEL_VERSION
+    load_img_from_buffer
 
 
 class Command(BaseCommand):
@@ -25,7 +26,7 @@ class Command(BaseCommand):
             return web.Response(text=json.dumps({
                 'class_index': class_index,
                 'class_name': class_name,
-                'version': MODEL_VERSION,
+                'version': settings.PHOTO_OBJECT_MODEL_VERSION,
             }))
         except Exception:
             return web.Response(text=json.dumps({
@@ -34,7 +35,7 @@ class Command(BaseCommand):
 
     async def version(self, request):
         return web.Response(text=json.dumps({
-            'version': MODEL_VERSION,
+            'version': settings.PHOTO_OBJECT_MODEL_VERSION,
         }))
 
     def __init__(self, *args, **kwargs):

@@ -142,3 +142,4 @@ SLINK_EXPIRY = timedelta(days=5)
 SLINK_UPDATE_FREQUENCY = timedelta(hours=12)
 PARTIAL_UPDATE_FREQUENCY = timedelta(hours=14)
 FULL_UPDATE_FREQUENCY = timedelta(hours=96)
+PHOTO_OBJECT_MODEL_VERSION = 2
