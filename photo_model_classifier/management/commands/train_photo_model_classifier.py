@@ -6,4 +6,4 @@ from photo_model_classifier.ml_models import PMC_BASE_DIR, PMC_NUM_CLASSES, PMC_
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        train_model(PMC_BASE_DIR, PMC_NUM_CLASSES, PMC_SAVED_MODEL_PATH, 200, 5)
+        train_model(PMC_BASE_DIR, PMC_NUM_CLASSES, PMC_SAVED_MODEL_PATH, 512, 10)
