@@ -20,4 +20,4 @@ def classify_image(model_version, port, image):
     data = image.image_big.read()
     if len(data) == 0:
         return False
-    return classify_blob(model_version, port, image)
+    return classify_blob(model_version, port, data)
