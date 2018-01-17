@@ -3,12 +3,12 @@ import os
 from keras.callbacks import TensorBoard
 from keras.preprocessing.image import ImageDataGenerator
 
-from ml_common.ml_models import resnet50_model, IMG_ROWS, IMG_COLS, MODEL_CHANNELS, \
-    BATCH_SIZE
+from ml_common.ml_models import IMG_ROWS, IMG_COLS, BATCH_SIZE, inception_resnet_v2
 
 
 def train_model(base_dir, num_classes, saved_model_path, steps_per_epoch, epochs):
-    model = resnet50_model(IMG_ROWS, IMG_COLS, MODEL_CHANNELS, num_classes)
+    # model = resnet50_model(IMG_ROWS, IMG_COLS, MODEL_CHANNELS, num_classes)
+    model = inception_resnet_v2(num_classes)
 
     tb = TensorBoard(
         log_dir=os.path.join(base_dir, 'logs'),

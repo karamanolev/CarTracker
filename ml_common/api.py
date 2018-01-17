@@ -1,6 +1,14 @@
 import requests
 
 
+class SkipClassification(Exception):
+    pass
+
+
+class ClassificationError(Exception):
+    pass
+
+
 def classify_blob(model_version, port, blob):
     resp = requests.post('http://localhost:{}/predict'.format(port), data=blob)
     resp.raise_for_status()
@@ -14,10 +22,10 @@ def classify_blob(model_version, port, blob):
 
 def classify_image(model_version, port, image):
     if image.photo_object_pred_v == model_version:
-        return False
+        raise SkipClassification('Already classified image {}.'.format(image.id))
     if not image.image_big:
-        return False
+        raise SkipClassification('No image_big for image {}'.format(image.id))
     data = image.image_big.read()
     if len(data) == 0:
-        return False
+        raise ClassificationError('Data is empty for image {}'.format(image.id))
     return classify_blob(model_version, port, data)

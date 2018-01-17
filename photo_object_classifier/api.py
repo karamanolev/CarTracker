@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from ml_common.api import classify_image, classify_blob
+from ml_common.api import classify_image, classify_blob, SkipClassification
 
 PORT = 9090
 
@@ -26,6 +26,9 @@ def classify_image_photo_object(image):
 
 
 def save_image_photo_object_classification(image):
-    image.photo_object_pred = classify_image_photo_object(image)
-    image.photo_object_pred_v = settings.PHOTO_OBJECT_MODEL_VERSION
-    image.save(update_fields=['photo_object_pred', 'photo_object_pred_v'])
+    try:
+        image.photo_object_pred = classify_image_photo_object(image)
+        image.photo_object_pred_v = settings.PHOTO_OBJECT_MODEL_VERSION
+        image.save(update_fields=['photo_object_pred', 'photo_object_pred_v'])
+    except SkipClassification:
+        print('Skipped image {}'.format(image.id))

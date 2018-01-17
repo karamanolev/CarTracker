@@ -2,6 +2,7 @@ import os
 
 import tensorflow as tf
 from keras import backend as K
+from keras.applications import InceptionResNetV2
 from keras.backend import set_session
 from keras.layers import Input, Dense, Conv2D, MaxPooling2D, AveragePooling2D, ZeroPadding2D, \
     Flatten, add, Activation
@@ -157,6 +158,17 @@ def resnet50_model(img_rows, img_cols, color_type=1, num_classes=None):
     sgd = SGD(lr=2e-3, decay=1e-6, momentum=0.9, nesterov=True)
     model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy'])
 
+    return model
+
+
+def inception_resnet_v2(num_classes):
+    model = InceptionResNetV2(
+        include_top=True,
+        weights=None,
+        classes=num_classes,
+    )
+    sgd = SGD(lr=5e-3, decay=1e-6, momentum=0.9, nesterov=True)
+    model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy'])
     return model
 
 
