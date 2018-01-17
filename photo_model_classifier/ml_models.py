@@ -12,6 +12,7 @@ PMC_CLASSES = sorted([
     'Nissan',
     'Opel',
     'Peugeot',
+    'Toyota',
     'VW',
 ])
 PMC_NUM_CLASSES = len(PMC_CLASSES)
