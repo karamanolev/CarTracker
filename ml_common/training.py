@@ -1,6 +1,6 @@
 import os
 
-from keras.callbacks import TensorBoard
+from keras.callbacks import TensorBoard, ModelCheckpoint
 from keras.preprocessing.image import ImageDataGenerator
 
 from ml_common.ml_models import IMG_ROWS, IMG_COLS, BATCH_SIZE, inception_resnet_v2
@@ -10,7 +10,7 @@ def train_model(base_dir, num_classes, saved_model_path, steps_per_epoch, epochs
     # model = resnet50_model(IMG_ROWS, IMG_COLS, MODEL_CHANNELS, num_classes)
     model = inception_resnet_v2(num_classes)
 
-    tb = TensorBoard(
+    tensorboard = TensorBoard(
         log_dir=os.path.join(base_dir, 'logs'),
         histogram_freq=0,
         batch_size=BATCH_SIZE,
@@ -20,6 +20,16 @@ def train_model(base_dir, num_classes, saved_model_path, steps_per_epoch, epochs
         embeddings_freq=0,
         embeddings_layer_names=None,
         embeddings_metadata=None,
+    )
+
+    checkpoint = ModelCheckpoint(
+        filepath=os.path.join(
+            os.path.dirname(saved_model_path),
+            'checkpoint-.{epoch:02d}-{val_loss:.2f}.h5'
+        ),
+        monitor='val_acc',
+        verbose=1,
+        save_best_only=True,
     )
 
     train_data = ImageDataGenerator(
@@ -47,7 +57,10 @@ def train_model(base_dir, num_classes, saved_model_path, steps_per_epoch, epochs
         train_data,
         steps_per_epoch=steps_per_epoch,
         epochs=epochs,
-        callbacks=[tb],
+        callbacks=[
+            tensorboard,
+            checkpoint,
+        ],
         validation_data=validation_data,
         shuffle=True,
         verbose=1,

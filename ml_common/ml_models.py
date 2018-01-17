@@ -8,7 +8,7 @@ from keras.layers import Input, Dense, Conv2D, MaxPooling2D, AveragePooling2D, Z
     Flatten, add, Activation
 from keras.layers.normalization import BatchNormalization
 from keras.models import Model
-from keras.optimizers import SGD, RMSprop
+from keras.optimizers import SGD, Nadam
 from keras.preprocessing import image
 
 IMG_ROWS, IMG_COLS = 224, 224  # Resolution of inputs
@@ -168,7 +168,8 @@ def inception_resnet_v2(num_classes):
         classes=num_classes,
     )
     # opt = SGD(lr=5e-3, decay=1e-6, momentum=0.9, nesterov=True)
-    opt = RMSprop(lr=5e-3, decay=1e-6)
+    # opt = RMSprop(lr=5e-3, decay=1e-6)
+    opt = Nadam(lr=0.003)
     model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
     return model
 
