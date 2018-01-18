@@ -352,23 +352,29 @@ class MobileBgAdUpdate(
         return self.date.astimezone(settings.TZ)
 
     @property
-    def html(self):
+    def html_and_level(self):
         if self.html_delta:
+            prev_html, prev_level = self.prev_update.html_and_level
             result = bsdiff4.patch(
-                self.prev_update.html.encode(),
+                prev_html.encode(),
                 self.html_delta,
             ).decode()
         elif self.html_raw:
             result = self.html_raw
+            prev_level = 0
         else:
-            result = self.prev_update.html
+            result, prev_level = self.prev_update.html_and_level
 
         result_checksum = hashlib.md5((result or '').encode()).hexdigest()
         if result_checksum != self.html_checksum:
             raise Exception('Update {} HTML failed verification. Expected {}, got {}.'.format(
                 self.id, self.html_checksum, result_checksum))
 
-        return result
+        return result, prev_level + 1
+
+    @property
+    def html(self):
+        return self.html_and_level[0]
 
     @html.setter
     def html(self, value):
@@ -384,10 +390,15 @@ class MobileBgAdUpdate(
             return
 
         # Check if HTML is the same and we can remove all the data
-        if self.prev_update and self.html == self.prev_update.html:
-            self.html_raw = None
-            self.html_delta = None
-            return
+        if self.prev_update:
+            prev_html, prev_level = self.prev_update.html_and_level
+            # Don't compress if the level is too high
+            if prev_level >= 64:
+                return
+            if self.html == self.prev_update.html:
+                self.html_raw = None
+                self.html_delta = None
+                return
 
         # Already delta-compressed
         if self.html_delta:

@@ -25,10 +25,10 @@ def train_model(base_dir, num_classes, saved_model_path, steps_per_epoch, epochs
     checkpoint = ModelCheckpoint(
         filepath=os.path.join(
             os.path.dirname(saved_model_path),
-            'checkpoint-.{epoch:02d}-{val_loss:.2f}.h5'
+            'checkpoint-{epoch:03d}-{val_acc:.2f}.h5'
         ),
         monitor='val_acc',
-        verbose=1,
+        verbose=0,
         save_best_only=True,
     )
 
