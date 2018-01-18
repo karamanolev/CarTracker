@@ -107,7 +107,6 @@ class MobileBgScrapeLink(VehicleTypeMixin, models.Model):
 
 
 class MobileBgAd(VehicleTypeMixin, models.Model):
-    topmenu = models.IntegerField()
     adv = models.BigIntegerField(unique=True)
 
     # Computed fields
@@ -127,7 +126,6 @@ class MobileBgAd(VehicleTypeMixin, models.Model):
     def url(self):
         return 'https://www.mobile.bg/pcgi/mobile.cgi?{}'.format(
             urlencode({
-                'topmenu': self.topmenu,
                 'act': '4',
                 'adv': self.adv,
             }))
@@ -242,7 +240,6 @@ class MobileBgAd(VehicleTypeMixin, models.Model):
             return cls.objects.get(adv=adv)
         except cls.DoesNotExist:
             return cls.objects.create(
-                topmenu=qs['topmenu'][0],
                 adv=adv,
                 vehicle_type=vehicle_type,
             )
