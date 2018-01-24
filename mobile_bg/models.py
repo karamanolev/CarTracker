@@ -159,7 +159,10 @@ class MobileBgAd(VehicleTypeMixin, models.Model):
                 break
 
     def update(self):
-        resp = requests_get_retry(self.url)
+        try:
+            resp = requests_get_retry(self.url)
+        except HttpNotFoundException as ex:
+            resp = ex.response
         sleep(settings.REQUEST_DELAY)
         text = resp.content.decode('windows-1251')
         up = MobileBgAdUpdate.from_html(self, text)

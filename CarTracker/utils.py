@@ -10,7 +10,8 @@ from requests import RequestException
 
 
 class HttpNotFoundException(RequestException):
-    pass
+    def __init__(self, response):
+        self.response = response
 
 
 def json_serialize(obj):
@@ -41,7 +42,7 @@ def requests_get_retry(url, params=None):
         except (ConnectionError, RequestException) as ex:
             response = getattr(ex, 'response')
             if response is not None and response.status_code == 404:
-                raise HttpNotFoundException()
+                raise HttpNotFoundException(response)
 
             retries_left -= 1
             if not retries_left:
